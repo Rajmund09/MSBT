@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { X, LogOut, LayoutDashboard, Users, Calendar, ClipboardList, Wallet, BarChart2, Receipt, UserCircle } from "lucide-react";
+import { X, LogOut, LayoutDashboard, Users, Calendar, ClipboardList, Wallet, BarChart2, Receipt, UserCircle, CalendarDays } from "lucide-react";
 import Magnetic from "./Magnetic";
 import { useAuth } from "@/contexts/AuthContext";
 import { useInteraction } from "@/contexts/InteractionContext";
@@ -14,6 +14,7 @@ import { useSwipe } from "@/hooks/useInteractionGestures";
 const NAV_LINKS = [
   { name: "Dashboard", href: "/" },
   { name: "Customers", href: "/customers" },
+  { name: "Calendar", href: "/calendar" },
   { name: "Staff", href: "/users" },
   { name: "Seasons", href: "/seasons" },
   { name: "Entries", href: "/entries" },
@@ -26,6 +27,7 @@ const getIconForLink = (name) => {
   switch (name) {
     case "Dashboard": return LayoutDashboard;
     case "Customers": return Users;
+    case "Calendar": return CalendarDays;
     case "Staff": return UserCircle;
     case "Seasons": return Calendar;
     case "Entries": return ClipboardList;

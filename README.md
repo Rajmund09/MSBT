@@ -73,4 +73,7 @@ npm run dev
 - **Authentication & User Management**: Secure login flow, AuthContext for robust session state management, and user administration pages.
 - **Audio Feedback & Export Utilities**: Subtle audio cues for interactions and robust data export capabilities (CSV/Excel).
 - **Interactive Components**: Comprehensive set of reusable UI elements including Modals, Toasts, and Confirm Dialogs.
+- **Interactive Calendar & Operations Timeline**: Fully integrated `/calendar` dashboard showing a visual mini-calendar with event indicators and a daily timeline detailing tasks, payments (collections), and work entries (trips/hours).
+- **Apple-Style Quick Actions Grid**: Dashboard quick links redesigned with squircle icon slots, left-aligned typographic hierarchy, and dynamic color-matched glowing hover indicators.
+- **Warm Alabaster & Midnight Obsidian Themes**: Premium color palette replacing standard black and white with eye-friendly warm alabaster linen (`#f6f5f0`) and rich midnight obsidian (`#0a0b10`) to enhance visual depth and contrast.
 

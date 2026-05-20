@@ -52,6 +52,14 @@ const MODULES = [
     actions: ["view", "export"],
   },
   {
+    id: "calendar",
+    label: "Calendar & Tasks",
+    icon: <CalendarDays size={16} />,
+    color: "text-indigo-400",
+    bg: "bg-indigo-400/10",
+    actions: ["view", "create", "edit", "delete"],
+  },
+  {
     id: "users",
     label: "User Management",
     icon: <Shield size={16} />,
