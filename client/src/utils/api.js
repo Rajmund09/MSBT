@@ -120,4 +120,10 @@ export const api = {
   getPayments: (params) => get('/api/payments', params),
   createPayment: (body) => post('/api/payments', body),
   deletePayment: (id) => del(`/api/payments/${id}`),
+
+  // Calendar & Tasks
+  getCalendarEvents: (params) => get('/api/tasks/calendar', params),
+  createTask: (body) => post('/api/tasks', body),
+  updateTask: (id, body) => put(`/api/tasks/${id}`, body),
+  deleteTask: (id) => del(`/api/tasks/${id}`),
 };
