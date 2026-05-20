@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #fafafa;
-  --fg: #050505;
-  --fg-muted: rgba(5, 5, 5, 0.4);
-  --border: rgba(5, 5, 5, 0.1);
-  --accent: #000000;
+  --bg: #f6f5f0; /* Warm Alabaster Linen Off-White */
+  --fg: #161614; /* Deep Soft Charcoal */
+  --fg-muted: rgba(22, 22, 20, 0.45);
+  --border: rgba(22, 22, 20, 0.08);
+  --accent: #161614;
   
-  --nav-bg: rgba(255, 255, 255, 0.6);
-  --nav-border: rgba(0, 0, 0, 0.08);
-  --nav-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  --nav-bg: rgba(246, 245, 240, 0.7);
+  --nav-border: rgba(22, 22, 20, 0.06);
+  --nav-shadow: 0 8px 32px rgba(22, 22, 20, 0.03);
 
   /* ─── Responsive Spacing System ─────────────────────────────────────────── */
   --page-px: clamp(1rem, 5vw, 3rem);
@@ -26,15 +26,15 @@
 }
 
 .dark {
-  --bg: #050505;
-  --fg: #f5f5f5;
-  --fg-muted: rgba(245, 245, 245, 0.4);
-  --border: rgba(245, 245, 245, 0.1);
-  --accent: #ffffff;
+  --bg: #0a0b10; /* Rich Midnight Obsidian/Slate */
+  --fg: #e4e4e7; /* Soft Premium Zinc White */
+  --fg-muted: rgba(228, 228, 231, 0.45);
+  --border: rgba(228, 228, 231, 0.08);
+  --accent: #e4e4e7;
   
-  --nav-bg: rgba(20, 20, 20, 0.6);
-  --nav-border: rgba(255, 255, 255, 0.08);
-  --nav-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --nav-bg: rgba(10, 11, 16, 0.7);
+  --nav-border: rgba(228, 228, 231, 0.06);
+  --nav-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 @theme inline {

@@ -239,26 +239,47 @@ export default function Dashboard() {
         <h2 className="font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)] mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
-            { label: "Add Entry", href: "/entries", icon: <FileText size={18} />, color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
-            { label: "Record Payment", href: "/payments", icon: <Zap size={18} />, color: "bg-green-500/10 text-green-500 border-green-500/20" },
-            { label: "New Customer", href: "/customers", icon: <Users size={18} />, color: "bg-orange-500/10 text-orange-500 border-orange-500/20" },
-            { label: "Generate Bill", href: "/billing", icon: <FileText size={18} />, color: "bg-purple-500/10 text-purple-500 border-purple-500/20" },
-            { label: "Analytics", href: "/analytics", icon: <Activity size={18} />, color: "bg-rose-500/10 text-rose-500 border-rose-500/20" },
+            { label: "Add Entry", desc: "Trips & Hours", href: "/entries", icon: <FileText size={18} />, textColor: "text-blue-500", bgColor: "bg-blue-500/10 dark:bg-blue-500/5 border border-blue-500/15", glow: "#3b82f6" },
+            { label: "Record Payment", desc: "Collections", href: "/payments", icon: <Zap size={18} />, textColor: "text-green-500", bgColor: "bg-green-500/10 dark:bg-green-500/5 border border-green-500/15", glow: "#10b981" },
+            { label: "New Customer", desc: "Directory", href: "/customers", icon: <Users size={18} />, textColor: "text-orange-500", bgColor: "bg-orange-500/10 dark:bg-orange-500/5 border border-orange-500/15", glow: "#f97316" },
+            { label: "Generate Bill", desc: "Invoicing", href: "/billing", icon: <FileText size={18} />, textColor: "text-purple-500", bgColor: "bg-purple-500/10 dark:bg-purple-500/5 border border-purple-500/15", glow: "#a855f7" },
+            { label: "Analytics", desc: "Performance", href: "/analytics", icon: <Activity size={18} />, textColor: "text-rose-500", bgColor: "bg-rose-500/10 dark:bg-rose-500/5 border border-rose-500/15", glow: "#f43f5e" },
           ].map((a, i) => (
             <motion.div
               key={a.label}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 + i * 0.04 }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + i * 0.04, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             >
               <Link
                 href={a.href}
-                className="flex flex-col items-center justify-center gap-3 p-5 rounded-2xl border border-[var(--border)] bg-white dark:bg-[#111] hover:bg-[var(--fg)]/5 hover:-translate-y-1 transition-all cursor-pointer shadow-sm group"
+                className="relative overflow-hidden flex flex-col justify-between gap-6 p-5 sm:p-6 rounded-3xl border border-[var(--border)] bg-white dark:bg-[#111] hover:bg-slate-500/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group select-none"
               >
-                <div className={`p-3 rounded-full ${a.color} group-hover:scale-110 transition-transform`}>
-                  {a.icon}
+                {/* Background glow dynamic */}
+                <div 
+                  className="absolute -bottom-16 -right-16 w-32 h-32 rounded-full opacity-[0.02] group-hover:opacity-[0.12] blur-2xl transition-opacity duration-500" 
+                  style={{ backgroundColor: a.glow }} 
+                />
+                
+                {/* Header Icon + Action Arrow */}
+                <div className="flex justify-between items-start w-full">
+                  <div className={`p-3 rounded-2xl ${a.bgColor} ${a.textColor} transition-transform group-hover:scale-105 duration-300`}>
+                    {a.icon}
+                  </div>
+                  <div className="text-[var(--fg-muted)] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                    <ArrowUpRight size={14} />
+                  </div>
                 </div>
-                <span className="font-mono text-[10px] sm:text-xs uppercase tracking-widest text-center">{a.label}</span>
+
+                {/* Text Labels */}
+                <div className="flex flex-col gap-1">
+                  <h4 className="font-display font-medium text-sm sm:text-base text-[var(--fg)] tracking-tight leading-snug group-hover:font-semibold transition-all">
+                    {a.label}
+                  </h4>
+                  <p className="font-mono text-[8px] sm:text-[9px] uppercase tracking-widest text-[var(--fg-muted)]">
+                    {a.desc}
+                  </p>
+                </div>
               </Link>
             </motion.div>
           ))}
