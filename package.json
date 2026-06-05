@@ -1,0 +1,15 @@
+{
+  "name": "msbt-erp",
+  "version": "1.0.0",
+  "description": "Mahalaxmi Samprat Behara Traders - Digital Operating System & ERP",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "dev": "concurrently \"npm run dev --prefix client\" \"npm run start --prefix server\"",
+    "start": "npm run start --prefix server",
+    "build:client": "npm run build --prefix client"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

@@ -1,0 +1,6 @@
+node_modules/
+server/
+database/
+client-gsap-backup/
+client/node_modules/
+client/.next/
