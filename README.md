@@ -24,16 +24,13 @@ MSBT/
 │   ├── controllers/               # Business logic & actions
 │   ├── middleware/                # Auth (JWT), RBAC, input sanitization
 │   └── routes/                    # API Routing definitions
-└── client/                        # PWA Frontend (Vite + React)
+└── client/                        # Modern Next.js Frontend (App Router)
     ├── package.json               # Client dependencies
-    ├── vite.config.js             # Vite configurations
-    ├── index.html                 # PWA HTML Entrypoint
     └── src/                       # Frontend source files
-        ├── main.jsx               # React Entry
-        ├── App.jsx                # Layout, Router, & Contexts
-        ├── styles/                # Variables, global and modular CSS
-        ├── components/            # Reusable UI widgets, loaders, charts
-        └── pages/                 # Full screen modules (Dashboard, Ledger, etc.)
+        ├── app/                   # Next.js App Router pages & layouts
+        ├── components/            # Reusable UI widgets, layout, animations
+        ├── contexts/              # Global state and contexts
+        └── utils/                 # API integrations, utilities (export, audio)
 ```
 
 ---
