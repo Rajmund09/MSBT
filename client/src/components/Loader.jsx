@@ -113,6 +113,9 @@ export default function Loader({ onComplete }) {
         transition: { duration: 0.8, ease: PREMIUM_EASE }
       });
 
+      // FIRE CINEMATIC AUDIO IMPACT EXACTLY HERE
+      import("@/utils/audio").then((m) => m.playCinematicImpact());
+
       // 5. Letters elegantly scale up from a blur exactly where the blocks were
       await lettersCtrl.start(i => ({
         opacity: 1,
@@ -137,6 +140,11 @@ export default function Loader({ onComplete }) {
   }, [containerCtrl, piecesCtrl, lettersCtrl, wrapperCtrl, onComplete]);
 
   const LETTERS = ["M", "S", "B", "T"];
+
+  // IMPORTANT: All React hooks must be called before any early returns.
+  // Extracting useMotionTemplate from the JSX to the top level.
+  const webkitMaskImage = useMotionTemplate`radial-gradient(${maskRadius}px circle at calc(${smoothX}px + 100px) calc(${smoothY}px + 100px), black 0%, transparent 100%)`;
+  const maskImage = useMotionTemplate`radial-gradient(${maskRadius}px circle at calc(${smoothX}px + 100px) calc(${smoothY}px + 100px), black 0%, transparent 100%)`;
 
   return (
     <motion.div
@@ -173,8 +181,8 @@ export default function Loader({ onComplete }) {
           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='translate(12, 12)'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cline x1='12' y1='2' x2='12' y2='4'/%3E%3Cline x1='12' y1='20' x2='12' y2='22'/%3E%3Cline x1='2' y1='12' x2='4' y2='12'/%3E%3Cline x1='20' y1='12' x2='22' y2='12'/%3E%3Cline x1='4.93' y1='4.93' x2='6.34' y2='6.34'/%3E%3Cline x1='17.66' y1='17.66' x2='19.07' y2='19.07'/%3E%3Cline x1='4.93' y1='19.07' x2='6.34' y2='17.66'/%3E%3Cline x1='17.66' y1='6.34' x2='19.07' y2='4.93'/%3E%3C/g%3E%3C/svg%3E")`,
           backgroundSize: '32px 32px',
           backgroundRepeat: 'repeat',
-          WebkitMaskImage: useMotionTemplate`radial-gradient(${maskRadius}px circle at calc(${smoothX}px + 100px) calc(${smoothY}px + 100px), black 0%, transparent 100%)`,
-          maskImage: useMotionTemplate`radial-gradient(${maskRadius}px circle at calc(${smoothX}px + 100px) calc(${smoothY}px + 100px), black 0%, transparent 100%)`,
+          WebkitMaskImage: webkitMaskImage,
+          maskImage: maskImage,
         }}
       />
 

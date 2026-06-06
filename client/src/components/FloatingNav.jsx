@@ -3,10 +3,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { X } from "lucide-react";
+import { X, LogOut } from "lucide-react";
 import Magnetic from "./Magnetic";
+import { useAuth } from "@/contexts/AuthContext";
 
 const NAV_LINKS = [
   { name: "Dashboard", href: "/" },
@@ -14,6 +15,8 @@ const NAV_LINKS = [
   { name: "Seasons", href: "/seasons" },
   { name: "Entries", href: "/entries" },
   { name: "Payments", href: "/payments" },
+  { name: "Analytics", href: "/analytics" },
+  { name: "Billing", href: "/billing" },
 ];
 
 const AnimatedLogo = () => {
@@ -61,11 +64,18 @@ const DesktopNav = () => {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { user, logout } = useAuth();
+  const router = useRouter();
 
   useEffect(() => setMounted(true), []);
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/login");
   };
 
   return (
@@ -180,25 +190,41 @@ const DesktopNav = () => {
               })}
             </motion.div>
 
-            {/* RIGHT BLOCK: THEME TOGGLE */}
+            {/* RIGHT BLOCK: THEME TOGGLE + LOGOUT */}
             <motion.div
               initial={{ opacity: 0, scale: 0.5, x: -20 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.5, x: -20 }}
               transition={{ type: "spring", stiffness: 200, damping: 20 }}
-              className="w-[60px] h-[60px] bg-[#111] rounded-[20px] flex items-center justify-center shadow-xl cursor-pointer"
-              onClick={toggleTheme}
+              className="flex items-center gap-2"
             >
-              <div className="w-[36px] h-[20px] bg-white/20 rounded-full relative flex items-center px-[2px]">
-                <motion.div
-                  layout
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  className="w-4 h-4 bg-white rounded-full shadow-sm"
-                  animate={{
-                    x: mounted && theme === "dark" ? 16 : 0,
-                  }}
-                />
+              <div
+                className="w-[60px] h-[60px] bg-[#111] rounded-[20px] flex items-center justify-center shadow-xl cursor-pointer"
+                onClick={toggleTheme}
+              >
+                <div className="flex items-center gap-2">
+                  {mounted && theme === "dark" ? (
+                    <>
+                      <motion.div layoutId="desktop-theme-dot-1" className="w-3.5 h-3.5 bg-white rounded-full shadow-sm" transition={{ type: "spring", stiffness: 300, damping: 25 }} />
+                      <motion.div layoutId="desktop-theme-dot-2" className="w-1.5 h-1.5 bg-white/30 rounded-full" transition={{ type: "spring", stiffness: 300, damping: 25 }} />
+                    </>
+                  ) : (
+                    <>
+                      <motion.div layoutId="desktop-theme-dot-2" className="w-1.5 h-1.5 bg-white/30 rounded-full" transition={{ type: "spring", stiffness: 300, damping: 25 }} />
+                      <motion.div layoutId="desktop-theme-dot-1" className="w-3.5 h-3.5 bg-white rounded-full shadow-sm" transition={{ type: "spring", stiffness: 300, damping: 25 }} />
+                    </>
+                  )}
+                </div>
               </div>
+              {user && (
+                <motion.button
+                  onClick={handleLogout}
+                  title={`Logout (${user.fullName || user.username})`}
+                  className="w-[60px] h-[60px] bg-[#111] rounded-[20px] flex items-center justify-center shadow-xl cursor-pointer hover:bg-red-900/40 transition-colors group"
+                >
+                  <LogOut size={18} className="text-white/40 group-hover:text-red-400 transition-colors" />
+                </motion.button>
+              )}
             </motion.div>
           </motion.div>
         )}
@@ -212,11 +238,19 @@ const MobileNav = () => {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { user, logout } = useAuth();
+  const router = useRouter();
 
   useEffect(() => setMounted(true), []);
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
+  };
+
+  const handleLogout = async () => {
+    setIsOpen(false);
+    await logout();
+    router.replace("/login");
   };
 
   return (
@@ -289,7 +323,7 @@ const MobileNav = () => {
                 })}
               </div>
 
-              {/* Footer / Toggle */}
+              {/* Footer / Toggle + Logout */}
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -299,16 +333,35 @@ const MobileNav = () => {
                 <span className="font-sans text-[15px] font-medium text-white/40">Theme</span>
                 <button
                   onClick={toggleTheme}
-                  className="w-[48px] h-[26px] bg-white/20 rounded-full relative flex items-center px-[3px] active:scale-95 transition-transform"
+                  className="h-[26px] relative flex items-center active:scale-95 transition-transform"
                 >
-                  <motion.div
-                    layout
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="w-5 h-5 bg-white rounded-full shadow-sm"
-                    animate={{ x: mounted && theme === "dark" ? 22 : 0 }}
-                  />
+                  <div className="flex items-center gap-2">
+                    {mounted && theme === "dark" ? (
+                      <>
+                        <motion.div layoutId="mobile-theme-dot-1" className="w-4 h-4 bg-white rounded-full shadow-sm" transition={{ type: "spring", stiffness: 300, damping: 25 }} />
+                        <motion.div layoutId="mobile-theme-dot-2" className="w-2 h-2 bg-white/30 rounded-full" transition={{ type: "spring", stiffness: 300, damping: 25 }} />
+                      </>
+                    ) : (
+                      <>
+                        <motion.div layoutId="mobile-theme-dot-2" className="w-2 h-2 bg-white/30 rounded-full" transition={{ type: "spring", stiffness: 300, damping: 25 }} />
+                        <motion.div layoutId="mobile-theme-dot-1" className="w-4 h-4 bg-white rounded-full shadow-sm" transition={{ type: "spring", stiffness: 300, damping: 25 }} />
+                      </>
+                    )}
+                  </div>
                 </button>
               </motion.div>
+              {user && (
+                <motion.button
+                  onClick={handleLogout}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35 }}
+                  className="mt-4 flex items-center gap-3 text-white/40 active:text-red-400 transition-colors"
+                >
+                  <LogOut size={16} />
+                  <span className="font-sans text-sm">Sign out — {user.fullName || user.username}</span>
+                </motion.button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

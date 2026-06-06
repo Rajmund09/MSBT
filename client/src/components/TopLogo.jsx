@@ -16,7 +16,7 @@ export default function TopLogo() {
   }, []);
 
   return (
-    <div className="fixed top-6 left-6 md:top-10 md:left-10 z-[9000] flex items-center justify-center pointer-events-none">
+    <div className="fixed top-6 left-6 md:top-10 md:left-10 z-[9000] flex items-center gap-6 pointer-events-none">
       <motion.div 
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
