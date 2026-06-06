@@ -27,7 +27,7 @@
 @theme inline {
   --color-background: var(--bg);
   --color-foreground: var(--fg);
-  --font-display: var(--font-libre);
+  --font-display: var(--font-playfair);
   --font-mono: var(--font-dm-mono);
   --font-sans: var(--font-dm-mono);
 }
@@ -58,7 +58,7 @@ body {
 
 .text-hero {
   font-family: var(--font-display);
-  font-size: clamp(4rem, 10vw, 12rem);
+  font-size: clamp(3rem, 6vw, 5rem);
   line-height: 0.9;
   letter-spacing: -0.04em;
   font-weight: 400;
@@ -83,4 +83,8 @@ em {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(200%); }
 }
