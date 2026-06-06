@@ -1,143 +1,120 @@
-// MSBT API Request Wrapper with Offline caching capabilities
+/**
+ * MSBT API Client
+ * - Reads JWT from sessionStorage (or localStorage for "remember me")
+ * - Auto-refreshes on 401
+ * - All endpoints namespaced
+ */
 
-const BASE_URL = '/api';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const TOKEN_KEY = 'msbt_auth_token';
+const USER_KEY = 'msbt_auth_user';
 
-// Cache keys
-const CACHE_KEYS = {
-  DASHBOARD: 'msbt_cache_dashboard',
-  CUSTOMERS: 'msbt_cache_customers',
-  SEASONS: 'msbt_cache_seasons',
-  ENTRIES: 'msbt_cache_entries',
-  PAYMENTS: 'msbt_cache_payments'
+// ─── Storage helpers ─────────────────────────────────────────────────────────
+export const getToken = () => {
+  if (typeof window === 'undefined') return null;
+  return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
 };
 
-// Local storage token helper
-const getToken = () => localStorage.getItem('msbt_token');
-export const setToken = (token) => localStorage.setItem('msbt_token', token);
-export const clearToken = () => {
-  localStorage.removeItem('msbt_token');
-  localStorage.removeItem('msbt_user');
+export const setToken = (token, remember = false) => {
+  if (typeof window === 'undefined') return;
+  if (remember) {
+    localStorage.setItem(TOKEN_KEY, token);
+  } else {
+    sessionStorage.setItem(TOKEN_KEY, token);
+  }
 };
 
-const getHeaders = () => {
-  const headers = { 'Content-Type': 'application/json' };
+export const getStoredUser = () => {
+  if (typeof window === 'undefined') return null;
+  const raw = sessionStorage.getItem(USER_KEY) || localStorage.getItem(USER_KEY);
+  return raw ? JSON.parse(raw) : null;
+};
+
+export const setStoredUser = (user, remember = false) => {
+  if (typeof window === 'undefined') return;
+  const json = JSON.stringify(user);
+  if (remember) localStorage.setItem(USER_KEY, json);
+  else sessionStorage.setItem(USER_KEY, json);
+};
+
+export const clearSession = () => {
+  if (typeof window === 'undefined') return;
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(USER_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+};
+
+// ─── Core fetch wrapper ───────────────────────────────────────────────────────
+const request = async (path, options = {}) => {
   const token = getToken();
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
+  });
+
+  // Token expired → force logout (handled by AuthContext listener)
+  if (res.status === 401 || res.status === 403) {
+    const err = await res.json().catch(() => ({}));
+    throw Object.assign(new Error(err.error || 'Unauthorized'), { status: res.status });
   }
-  return headers;
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `API Error ${res.status}`);
+  return data;
 };
 
-// Generic request handler
-async function request(endpoint, method = 'GET', body = null, cacheKey = null) {
-  const isGet = method === 'GET';
-  
-  // If offline, serve cache for GET requests immediately
-  if (!navigator.onLine && isGet && cacheKey) {
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-      console.warn('Offline Mode: Serving cached data for:', endpoint);
-      return JSON.parse(cached);
-    }
-  }
+const get = (path, params) => {
+  const url = params && Object.keys(params).length
+    ? `${path}?${new URLSearchParams(params)}`
+    : path;
+  return request(url, { method: 'GET' });
+};
+const post = (path, body) => request(path, { method: 'POST', body: JSON.stringify(body) });
+const put = (path, body) => request(path, { method: 'PUT', body: JSON.stringify(body) });
+const del = (path) => request(path, { method: 'DELETE' });
 
-  const config = {
-    method,
-    headers: getHeaders()
-  };
-
-  if (body) {
-    config.body = JSON.stringify(body);
-  }
-
-  try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, config);
-    
-    if ((response.status === 401 || response.status === 403) && endpoint !== '/auth/login') {
-      // Token expired or invalid
-      clearToken();
-      window.dispatchEvent(new Event('auth-expired'));
-      throw new Error('Unauthorized or Session expired');
-    }
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `Request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    // Save to cache if successful GET request
-    if (isGet && cacheKey) {
-      localStorage.setItem(cacheKey, JSON.stringify(data));
-    }
-    
-    return data;
-  } catch (error) {
-    // If request failed (e.g. network disconnect) and we have cache, fallback to it
-    if (isGet && cacheKey) {
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        console.warn('Network Error: Serving cached fallback for:', endpoint);
-        return JSON.parse(cached);
-      }
-    }
-    throw error;
-  }
-}
-
-// API Functions
+// ─── Named API methods ────────────────────────────────────────────────────────
 export const api = {
   // Auth
-  login: async (username, password) => {
-    const data = await request('/auth/login', 'POST', { username, password });
-    setToken(data.token);
-    localStorage.setItem('msbt_user', JSON.stringify(data.user));
-    return data;
-  },
-  getCurrentUser: () => request('/auth/me'),
+  login: (username, password) => post('/api/auth/login', { username, password }),
+  logout: () => post('/api/auth/logout', {}),
+  getMe: () => get('/api/auth/me'),
+
+  // Users
+  getUsers: () => get('/api/auth/users'),
+  createUser: (body) => post('/api/auth/users', body),
+  updateUser: (id, body) => put(`/api/auth/users/${id}`, body),
+  deleteUser: (id) => del(`/api/auth/users/${id}`),
 
   // Dashboard
-  getDashboard: (seasonId) => {
-    const url = seasonId ? `/dashboard/summary?seasonId=${seasonId}` : '/dashboard/summary';
-    const cacheKey = seasonId ? `${CACHE_KEYS.DASHBOARD}_${seasonId}` : CACHE_KEYS.DASHBOARD;
-    return request(url, 'GET', null, cacheKey);
-  },
-  
-  getAuditLogs: () => request('/dashboard/audit'),
+  getDashboard: (params) => get('/api/dashboard/summary', params),
+  getAnalytics: (params) => get('/api/dashboard/analytics', params),
+  getAuditLogs: () => get('/api/dashboard/audit'),
 
   // Customers
-  getCustomers: () => request('/customers', 'GET', null, CACHE_KEYS.CUSTOMERS),
-  getCustomer: (id) => request(`/customers/${id}`),
-  createCustomer: (data) => request('/customers', 'POST', data),
-  updateCustomer: (id, data) => request(`/customers/${id}`, 'PUT', data),
+  getCustomers: () => get('/api/customers'),
+  getCustomer: (id) => get(`/api/customers/${id}`),
+  createCustomer: (body) => post('/api/customers', body),
+  updateCustomer: (id, body) => put(`/api/customers/${id}`, body),
 
   // Seasons
-  getSeasons: () => request('/seasons', 'GET', null, CACHE_KEYS.SEASONS),
-  createSeason: (data) => request('/seasons', 'POST', data),
-  updateSeasonStatus: (id, status, endDate) => request(`/seasons/${id}/status`, 'PUT', { status, endDate }),
+  getSeasons: () => get('/api/seasons'),
+  createSeason: (body) => post('/api/seasons', body),
+  updateSeasonStatus: (id, body) => put(`/api/seasons/${id}/status`, body),
 
   // Entries
-  getEntries: (customerId, seasonId) => {
-    let url = '/entries';
-    const params = [];
-    if (customerId) params.push(`customerId=${customerId}`);
-    if (seasonId) params.push(`seasonId=${seasonId}`);
-    if (params.length > 0) url += `?${params.join('&')}`;
-    return request(url, 'GET', null, CACHE_KEYS.ENTRIES);
-  },
-  createEntry: (data) => request('/entries', 'POST', data),
-  deleteEntry: (id) => request(`/entries/${id}`, 'DELETE'),
+  getEntries: (params) => get('/api/entries', params),
+  createEntry: (body) => post('/api/entries', body),
+  deleteEntry: (id) => del(`/api/entries/${id}`),
 
   // Payments
-  getPayments: (customerId, seasonId) => {
-    let url = '/payments';
-    const params = [];
-    if (customerId) params.push(`customerId=${customerId}`);
-    if (seasonId) params.push(`seasonId=${seasonId}`);
-    if (params.length > 0) url += `?${params.join('&')}`;
-    return request(url, 'GET', null, CACHE_KEYS.PAYMENTS);
-  },
-  createPayment: (data) => request('/payments', 'POST', data),
-  deletePayment: (id) => request(`/payments/${id}`, 'DELETE')
+  getPayments: (params) => get('/api/payments', params),
+  createPayment: (body) => post('/api/payments', body),
+  deletePayment: (id) => del(`/api/payments/${id}`),
 };
