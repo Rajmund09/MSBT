@@ -1,11 +1,10 @@
-import { Libre_Baskerville, DM_Mono, Anton } from "next/font/google";
+import { Playfair_Display, DM_Mono, Anton } from "next/font/google";
 import "./globals.css";
 
-const libre = Libre_Baskerville({
-  weight: ["400", "700"],
+const playfair = Playfair_Display({
   subsets: ["latin"],
   style: ["normal", "italic"],
-  variable: "--font-libre",
+  variable: "--font-playfair",
 });
 
 const dmMono = DM_Mono({
@@ -21,6 +20,7 @@ const anton = Anton({
 });
 
 import Providers from "@/components/Providers";
+import TransitionProvider from "@/components/TransitionProvider";
 
 export const metadata = {
   title: "MSBT | Digital Operating System",
@@ -29,9 +29,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${libre.variable} ${dmMono.variable} ${anton.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${dmMono.variable} ${anton.variable} antialiased`}>
       <body className="min-h-screen flex flex-col selection:bg-white selection:text-black">
-        <Providers>{children}</Providers>
+        <Providers>
+          <TransitionProvider>
+            {children}
+          </TransitionProvider>
+        </Providers>
       </body>
     </html>
   );
