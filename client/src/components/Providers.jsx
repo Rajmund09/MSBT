@@ -7,15 +7,18 @@ import { ThemeProvider } from "./ThemeProvider";
 import { ReactLenis } from "lenis/react";
 import { ToastProvider } from "./ui/Toast";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { InteractionProvider, useInteraction } from "@/contexts/InteractionContext";
 import Loader from "./Loader";
 import FloatingNav from "./FloatingNav";
 import TopLogo from "./TopLogo";
-import CustomCursor from "./CustomCursor";
 import GlobalSearch from "./GlobalSearch";
+import AccountDropdown from "./AccountDropdown";
+import dynamic from "next/dynamic";
 
-// Inner component so it can use useAuth
+// Inner component so it can use useAuth + useInteraction
 function AppShell({ children }) {
   const { user, loading } = useAuth();
+  const { enableCustomCursor, isTouch } = useInteraction();
   const pathname = usePathname();
   const router = useRouter();
   const [appLoaded, setAppLoaded] = useState(false);
@@ -28,6 +31,12 @@ function AppShell({ children }) {
       router.replace("/login");
     }
   }, [user, loading, isLoginPage, router]);
+
+  // Disable smooth scroll on touch — Lenis can conflict with native momentum scroll
+  // On touch devices, native scroll is faster and more responsive
+  const lenisOptions = isTouch
+    ? { lerp: 1, smoothTouch: false }
+    : { lerp: 0.08, duration: 1.5, smoothTouch: false };
 
   // On login page — render children directly (no nav/loader)
   if (isLoginPage) {
@@ -48,7 +57,6 @@ function AppShell({ children }) {
 
   return (
     <>
-      <CustomCursor />
       <AnimatePresence mode="wait">
         {!appLoaded && (
           <Loader key="loader" onComplete={() => setAppLoaded(true)} />
@@ -60,6 +68,7 @@ function AppShell({ children }) {
           <TopLogo />
           <FloatingNav />
           <GlobalSearch />
+          <AccountDropdown />
           <AnimatePresence mode="wait" initial={true}>
             <motion.div
               key={pathname}
@@ -67,7 +76,11 @@ function AppShell({ children }) {
               animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
               exit={{ opacity: 0, scale: 1.02, filter: "blur(10px)" }}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="min-h-screen flex flex-col pt-32 pb-32"
+              className="min-h-screen flex flex-col"
+              style={{
+                paddingTop: 'clamp(5rem, 10vw, 8rem)',
+                paddingBottom: 'calc(clamp(5.5rem, 10vw, 8rem) + env(safe-area-inset-bottom, 0px))',
+              }}
             >
               {children}
             </motion.div>
@@ -78,16 +91,32 @@ function AppShell({ children }) {
   );
 }
 
+// Wraps AppShell with Lenis that reacts to interaction type
+function LenisWrapper({ children }) {
+  const { isTouch } = useInteraction();
+  const options = isTouch
+    ? { lerp: 1, smoothTouch: false, prevent: () => true }  // native scroll on touch
+    : { lerp: 0.08, duration: 1.5, smoothTouch: false };
+
+  return (
+    <ReactLenis root options={options}>
+      {children}
+    </ReactLenis>
+  );
+}
+
 export default function Providers({ children }) {
   return (
     <ToastProvider>
-      <ReactLenis root options={{ lerp: 0.08, duration: 1.5, smoothTouch: true }}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          <AuthProvider>
-            <AppShell>{children}</AppShell>
-          </AuthProvider>
-        </ThemeProvider>
-      </ReactLenis>
+      <InteractionProvider>
+        <LenisWrapper>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+            <AuthProvider>
+              <AppShell>{children}</AppShell>
+            </AuthProvider>
+          </ThemeProvider>
+        </LenisWrapper>
+      </InteractionProvider>
     </ToastProvider>
   );
 }

@@ -27,6 +27,13 @@ export const metadata = {
   description: "Mahalaxmi Samprat Behara Traders Enterprise Resource Planning",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#050505",
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${dmMono.variable} ${anton.variable} antialiased`}>
