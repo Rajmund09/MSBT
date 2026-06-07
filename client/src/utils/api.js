@@ -82,15 +82,17 @@ const del = (path) => request(path, { method: 'DELETE' });
 // ─── Named API methods ────────────────────────────────────────────────────────
 export const api = {
   // Auth
-  login: (username, password) => post('/api/auth/login', { username, password }),
+  login: (username, password, remember = false) => post('/api/auth/login', { username, password, remember }),
   logout: () => post('/api/auth/logout', {}),
   getMe: () => get('/api/auth/me'),
+  updateProfile: (body) => put('/api/auth/me', body),
 
   // Users
   getUsers: () => get('/api/auth/users'),
   createUser: (body) => post('/api/auth/users', body),
   updateUser: (id, body) => put(`/api/auth/users/${id}`, body),
   deleteUser: (id) => del(`/api/auth/users/${id}`),
+  hardDeleteUser: (id) => del(`/api/auth/users/${id}/permanent`),
 
   // Dashboard
   getDashboard: (params) => get('/api/dashboard/summary', params),
@@ -98,10 +100,11 @@ export const api = {
   getAuditLogs: () => get('/api/dashboard/audit'),
 
   // Customers
-  getCustomers: () => get('/api/customers'),
+  getCustomers: (seasonId) => get(`/api/customers${seasonId ? `?seasonId=${seasonId}` : ''}`),
   getCustomer: (id) => get(`/api/customers/${id}`),
   createCustomer: (body) => post('/api/customers', body),
   updateCustomer: (id, body) => put(`/api/customers/${id}`, body),
+  deleteCustomer: (id) => del(`/api/customers/${id}`),
 
   // Seasons
   getSeasons: () => get('/api/seasons'),

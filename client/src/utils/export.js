@@ -47,16 +47,17 @@ function downloadBlob(blob, filename) {
 }
 
 // Format customer data for export
-export function formatCustomersForExport(customers) {
+export function formatCustomersForExport(customers, seasonName = "All") {
   return customers.map(c => ({
     "Name": c.name,
-    "Phone": c.phone,
-    "Village": c.village,
-    "Address": c.address || "",
+    "Entry Date": new Date(c.created_at).toLocaleDateString(),
+    "Season Name": seasonName,
+    "Facility Details (Hour/Trip)": c.facilityDetails || "None",
     "Status": c.status,
-    "Total Revenue (₹)": c.totalRevenue || 0,
-    "Total Paid (₹)": c.totalPaid || 0,
-    "Outstanding (₹)": c.outstanding || 0,
+    "Total Revenue": c.totalRevenue || 0,
+    "Total Paid": c.totalPaid || 0,
+    "Outstanding": c.outstanding || 0,
+    "Last Edited By": c.lastEditedBy || "System",
   }));
 }
 
