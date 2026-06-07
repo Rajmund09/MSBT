@@ -12,7 +12,9 @@ import {
   PageHeader, AddButton, EmptyState, Skeleton,
   FormField, Input, Textarea, SubmitButton
 } from "@/components/ui/index";
+import { AdaptiveActions, AdaptiveTooltip } from "@/components/ui/AdaptiveUI";
 import { exportToExcel, exportToCSV, formatCustomersForExport } from "@/utils/export";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -101,7 +103,7 @@ const rowVariants = {
   show: { opacity: 1, y: 0 },
 };
 
-function CustomerRow({ customer, onEdit, onDelete, index }) {
+function CustomerRow({ customer, onEdit, onDelete, index, canEdit }) {
   const outstanding = customer.outstanding || 0;
 
   return (
@@ -109,18 +111,18 @@ function CustomerRow({ customer, onEdit, onDelete, index }) {
       <motion.div
         variants={rowVariants}
         layout
-        className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl bg-[var(--fg)]/[0.025] border border-[var(--border)] hover:bg-[var(--fg)]/[0.05] transition-all cursor-pointer"
+        className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-6 rounded-2xl bg-white dark:bg-[#111] shadow-sm border border-[var(--border)] hover:shadow-md transition-all cursor-pointer"
       >
       {/* Left: Identity */}
-      <div className="flex items-center gap-4 min-w-0">
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0">
         <span className="font-mono text-xs text-[var(--fg-muted)] w-6 shrink-0">
-          {String(index + 1).padStart(2, "0")}
+          {String(index + 1).padStart(2, "00")}
         </span>
-        <div className="min-w-0">
-          <p className="font-display text-lg text-[var(--fg)] group-hover:italic transition-all truncate">
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-base sm:text-lg text-[var(--fg)] group-hover:italic transition-all truncate">
             {customer.name}
           </p>
-          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-3 mt-0.5 flex-wrap">
             <span className="flex items-center gap-1 text-xs font-mono text-[var(--fg-muted)]">
               <Phone size={11} /> {customer.phone}
             </span>
@@ -135,39 +137,48 @@ function CustomerRow({ customer, onEdit, onDelete, index }) {
       </div>
 
       {/* Right: Financials + Actions */}
-      <div className="flex items-center gap-4 sm:gap-6 ml-10 sm:ml-0">
-        <div className="flex gap-4 sm:gap-6">
+      <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 pl-9 sm:pl-0">
+        <div className="flex gap-3 sm:gap-6">
           <div className="text-right">
             <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--fg-muted)]">Revenue</p>
-            <p className="font-mono text-sm text-[var(--fg)]">{fmt(customer.totalRevenue)}</p>
+            <p className="font-mono font-medium text-xs sm:text-sm text-[var(--fg)]">{fmt(customer.totalRevenue)}</p>
           </div>
           <div className="text-right">
             <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--fg-muted)]">Paid</p>
-            <p className="font-mono text-sm text-green-400">{fmt(customer.totalPaid)}</p>
+            <p className="font-mono font-medium text-xs sm:text-sm text-green-500">{fmt(customer.totalPaid)}</p>
           </div>
-          <div className="text-right hidden sm:block">
+          <div className="text-right">
             <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--fg-muted)]">Due</p>
-            <p className={`font-mono text-sm ${outstanding > 0 ? "text-red-400" : "text-[var(--fg)]"}`}>
+            <p className={`font-mono font-medium text-xs sm:text-sm ${outstanding > 0 ? "text-red-500" : "text-[var(--fg)]"}`}>
               {fmt(outstanding)}
             </p>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(customer); }}
-            className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all"
-          >
-            <Edit2 size={14} />
-          </button>
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(customer); }}
-            className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/5 hover:bg-red-500/15 text-red-400/50 hover:text-red-400 transition-all"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
+        <AdaptiveActions>
+          {canEdit && (
+            <AdaptiveTooltip content="Edit Customer">
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(customer); }}
+                aria-label="Edit customer"
+                className="w-9 h-9 rounded-lg flex items-center justify-center bg-[var(--fg)]/5 hover:bg-[var(--fg)]/10 active:bg-[var(--fg)]/15 text-[var(--fg)]/50 hover:text-[var(--fg)] transition-all"
+              >
+                <Edit2 size={14} />
+              </button>
+            </AdaptiveTooltip>
+          )}
+          {canEdit && (
+            <AdaptiveTooltip content="Permanently Delete">
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(customer); }}
+                aria-label="Delete customer"
+                className="w-9 h-9 rounded-lg flex items-center justify-center bg-red-500/5 hover:bg-red-500/15 active:bg-red-500/20 text-red-400/50 hover:text-red-400 transition-all"
+              >
+                <Trash2 size={14} />
+              </button>
+            </AdaptiveTooltip>
+          )}
+        </AdaptiveActions>
       </div>
       </motion.div>
     </Link>
@@ -182,6 +193,13 @@ export default function Customers() {
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState("");
+  const [seasons, setSeasons] = useState([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState("all");
+
+  const { hasPermission } = useAuth();
+  const canCreate = hasPermission('customers', 'create');
+  const canEdit = hasPermission('customers', 'edit');
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
@@ -190,16 +208,23 @@ export default function Customers() {
   // Fetch customers
   const fetchCustomers = useCallback(async () => {
     try {
-      const data = await api.getCustomers();
+      const data = await api.getCustomers(selectedSeasonId);
       setCustomers(data);
     } catch (err) {
       toast(err.message || "Failed to load customers", "error");
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, selectedSeasonId]);
 
-  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
+  useEffect(() => { 
+    api.getSeasons().then(s => setSeasons(s)).catch(() => {});
+  }, []);
+
+  useEffect(() => { 
+    setLoading(true);
+    fetchCustomers(); 
+  }, [fetchCustomers]);
 
   // Create
   const handleCreate = async (form) => {
@@ -233,23 +258,16 @@ export default function Customers() {
     }
   };
 
-  // Delete — note: API has no delete endpoint for customers (only updateStatus). We'll set inactive.
+  // Delete — permanently removes customer from database
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      await api.updateCustomer(deleteTarget.id, {
-        name: deleteTarget.name,
-        phone: deleteTarget.phone,
-        village: deleteTarget.village,
-        address: deleteTarget.address || "",
-        notes: deleteTarget.notes || "",
-        status: "inactive",
-      });
-      toast("Customer deactivated", "warning");
+      await api.deleteCustomer(deleteTarget.id);
+      toast("Customer permanently deleted", "success");
       setDeleteTarget(null);
       await fetchCustomers();
     } catch (err) {
-      toast(err.message || "Failed to deactivate customer", "error");
+      toast(err.message || "Failed to delete customer", "error");
     } finally {
       setDeleting(false);
     }
@@ -257,14 +275,24 @@ export default function Customers() {
 
   // Filtered list
   const filtered = useMemo(() => {
-    if (!search.trim()) return customers;
+    let result = customers;
+    
+    // Apply payment status filter
+    if (paymentStatus === "outstanding") {
+      result = result.filter(c => c.outstanding > 0);
+    } else if (paymentStatus === "paid") {
+      result = result.filter(c => c.outstanding <= 0 && c.totalRevenue > 0);
+    }
+
+    // Apply search
+    if (!search.trim()) return result;
     const q = search.toLowerCase();
-    return customers.filter(c =>
+    return result.filter(c =>
       c.name.toLowerCase().includes(q) ||
       c.village.toLowerCase().includes(q) ||
       c.phone.includes(q)
     );
-  }, [customers, search]);
+  }, [customers, search, paymentStatus]);
 
   const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 
@@ -282,31 +310,64 @@ export default function Customers() {
         action={
           <div className="flex items-center gap-2">
             <div className="hidden sm:flex items-center gap-2 mr-2">
-              <button onClick={() => exportToCSV(formatCustomersForExport(customers), "MSBT_Customers")} className="h-9 px-3 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--fg)]/5 transition-all inline-flex items-center gap-1.5">
+              <button onClick={() => {
+                const selectedSeason = seasons.find(s => s.id === selectedSeasonId);
+                const seasonName = selectedSeason ? selectedSeason.name : "All Seasons";
+                exportToCSV(formatCustomersForExport(filtered, seasonName), "MSBT_Customers");
+              }} className="h-9 px-3 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--fg)]/5 transition-all inline-flex items-center gap-1.5">
                 <Download size={13} /> CSV
               </button>
-              <button onClick={() => exportToExcel(formatCustomersForExport(customers), "MSBT_Customers")} className="h-9 px-3 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--fg)]/5 transition-all inline-flex items-center gap-1.5">
+              <button onClick={() => {
+                const selectedSeason = seasons.find(s => s.id === selectedSeasonId);
+                const seasonName = selectedSeason ? selectedSeason.name : "All Seasons";
+                exportToExcel(formatCustomersForExport(filtered, seasonName), "MSBT_Customers");
+              }} className="h-9 px-3 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--fg)]/5 transition-all inline-flex items-center gap-1.5">
                 <Download size={13} /> Excel
               </button>
             </div>
-            <AddButton onClick={() => setCreateOpen(true)}>
-              <Plus size={14} />
-              Add Customer
-            </AddButton>
+            {canCreate && (
+              <AddButton onClick={() => setCreateOpen(true)}>
+                <Plus size={14} />
+                Add Customer
+              </AddButton>
+            )}
           </div>
         }
       />
 
-      {/* Search bar */}
-      <div className="relative mb-8">
-        <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
-        <input
-          type="text"
-          placeholder="Search by name, village or phone…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full sm:max-w-sm h-11 pl-10 pr-4 rounded-xl bg-[var(--fg)]/[0.04] border border-[var(--border)] text-[var(--fg)] placeholder-[var(--fg-muted)] text-sm font-mono focus:outline-none focus:border-[var(--fg)]/20 transition-all"
-        />
+      {/* Filters & Search */}
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--fg-muted)]" />
+          <input
+            type="text"
+            placeholder="Search by name, village or phone…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-11 pl-10 pr-4 rounded-xl bg-white dark:bg-[var(--fg)]/[0.04] border border-[var(--border)] text-[var(--fg)] placeholder-[var(--fg-muted)] text-sm font-mono focus:outline-none focus:border-[var(--fg)]/20 shadow-sm transition-all"
+          />
+        </div>
+        <div className="flex gap-4">
+          <select
+            value={selectedSeasonId}
+            onChange={(e) => setSelectedSeasonId(e.target.value)}
+            className="h-11 px-4 rounded-xl bg-white dark:bg-[var(--fg)]/[0.04] border border-[var(--border)] text-[var(--fg)] text-xs font-mono uppercase tracking-widest focus:outline-none focus:border-[var(--fg)]/20 shadow-sm appearance-none cursor-pointer pr-10 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:calc(100%-10px)_center]"
+          >
+            <option value="">All Seasons</option>
+            {seasons.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+          <select
+            value={paymentStatus}
+            onChange={(e) => setPaymentStatus(e.target.value)}
+            className="h-11 px-4 rounded-xl bg-white dark:bg-[var(--fg)]/[0.04] border border-[var(--border)] text-[var(--fg)] text-xs font-mono uppercase tracking-widest focus:outline-none focus:border-[var(--fg)]/20 shadow-sm appearance-none cursor-pointer pr-10 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:calc(100%-10px)_center]"
+          >
+            <option value="all">All Status</option>
+            <option value="outstanding">Outstanding Due</option>
+            <option value="paid">Fully Paid</option>
+          </select>
+        </div>
       </div>
 
       {/* Content */}
@@ -317,7 +378,7 @@ export default function Customers() {
           icon={<Users size={48} />}
           title={search ? "No results found" : "No customers yet"}
           description={search ? "Try a different search term" : "Add your first customer to get started"}
-          action={!search && <AddButton onClick={() => setCreateOpen(true)}><Plus size={14} /> Add Customer</AddButton>}
+          action={(!search && canCreate) && <AddButton onClick={() => setCreateOpen(true)}><Plus size={14} /> Add Customer</AddButton>}
         />
       ) : (
         <motion.div
@@ -333,6 +394,7 @@ export default function Customers() {
               index={i}
               onEdit={setEditTarget}
               onDelete={setDeleteTarget}
+              canEdit={canEdit}
             />
           ))}
         </motion.div>
@@ -350,15 +412,14 @@ export default function Customers() {
         )}
       </Modal>
 
-      {/* Deactivate Confirm */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         loading={deleting}
-        title="Deactivate Customer?"
-        message={`"${deleteTarget?.name}" will be marked as inactive. Their ledger history will be preserved.`}
-        confirmLabel="Deactivate"
+        title="Permanently Delete Customer?"
+        message={`"${deleteTarget?.name}" and all their related ledger entries will be permanently erased. This action cannot be undone.`}
+        confirmLabel="Delete Permanently"
       />
     </motion.main>
   );

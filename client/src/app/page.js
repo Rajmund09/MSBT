@@ -32,18 +32,18 @@ function MetricCard({ title, value, sub, icon, highlight, delay = 0 }) {
       transition={{ delay, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -6, scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
-      className={`relative overflow-hidden p-6 md:p-8 rounded-3xl border cursor-pointer transition-colors ${
+      className={`relative overflow-hidden p-6 md:p-8 rounded-3xl border cursor-pointer transition-all ${
         highlight
-          ? "border-[var(--fg)]/20 bg-[var(--fg)]/5"
-          : "border-[var(--border)] bg-[var(--fg)]/[0.02]"
+          ? "border-[var(--fg)]/20 bg-[var(--fg)]/5 shadow-sm"
+          : "border-[var(--border)] bg-white dark:bg-[#111] shadow-sm hover:shadow-md"
       } flex flex-col gap-8`}
     >
       <div className="flex justify-between items-start">
-        <span className="font-mono text-[10px] tracking-widest uppercase text-[var(--fg-muted)]">{title}</span>
-        <div className="opacity-30">{icon}</div>
+        <span className="font-mono text-[9px] sm:text-[10px] tracking-widest uppercase text-[var(--fg-muted)]">{title}</span>
+        <div className="opacity-30 hidden sm:block">{icon}</div>
       </div>
       <div>
-        <div className="font-display text-4xl md:text-5xl tracking-tight">{fmtShort(value)}</div>
+        <div className="font-mono font-medium text-3xl sm:text-4xl md:text-5xl tracking-tighter">{fmtShort(value)}</div>
         {sub && <div className="font-mono text-xs text-[var(--fg-muted)] mt-1">{sub}</div>}
       </div>
       <motion.div
@@ -115,6 +115,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [time, setTime] = useState(new Date());
+  const [seasons, setSeasons] = useState([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState("");
 
   const getGreeting = () => {
     const hour = time.getHours();
@@ -125,15 +127,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
-    
-    api.getDashboard()
-      .then(d => { setData(d); setLoading(false); })
-      .catch(err => { setError(err.message); setLoading(false); });
-      
+    api.getSeasons().then(s => setSeasons(s)).catch(() => {});
     return () => clearInterval(timer);
   }, []);
 
-  if (loading) {
+  useEffect(() => {
+    setLoading(true);
+    api.getDashboard(selectedSeasonId)
+      .then(d => { setData(d); setLoading(false); })
+      .catch(err => { setError(err.message); setLoading(false); });
+  }, [selectedSeasonId]);
+
+  if (loading && !data) {
     return (
       <main className="container mx-auto px-4 sm:px-6 md:px-12">
         <DashboardSkeleton />
@@ -168,36 +173,55 @@ export default function Dashboard() {
       className="container mx-auto px-4 sm:px-6 md:px-12 flex flex-col gap-14"
     >
       {/* Hero */}
-      <section className="mt-4 md:mt-12">
+      <section className="mt-4 md:mt-12 flex flex-col md:flex-row md:items-start justify-between gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="mb-6">
-            {activeSeason && (
-              <span className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-mono uppercase tracking-widest">
-                {activeSeason.name}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10 w-full">
-            <div className="flex flex-col items-start">
-              <h2 className="font-display italic text-2xl md:text-3xl text-[var(--fg-muted)] mb-[-0.2em]">
-                {getGreeting()},
-              </h2>
-              <MotionGraphicName text={displayName} />
-            </div>
-
-            <div className="flex flex-col text-[var(--fg-muted)] font-mono text-[10px] md:text-xs tracking-[0.2em] uppercase leading-loose border-l border-[var(--border)] pl-4 md:pl-6">
+          <div className="flex flex-col mb-8 sm:mb-10 w-full">
+            <h2 className="font-display italic text-xl sm:text-2xl md:text-3xl text-[var(--fg-muted)] mb-[-0.2em]">
+              {getGreeting()},
+            </h2>
+            <MotionGraphicName text={displayName} />
+            
+            <div className="mt-6 flex flex-wrap items-center gap-3 sm:gap-4 text-[var(--fg-muted)] font-mono text-[9px] sm:text-[10px] tracking-widest uppercase">
+              <div className="flex items-center gap-1.5">
+                <Clock size={12} className="opacity-50" />
+                <span className="text-[var(--fg)]">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+              <span className="opacity-30">—</span>
               <span>{DAYS[time.getDay()]}, {time.getDate()} {MONTHS[time.getMonth()]} {time.getFullYear()}</span>
-              <span className="text-[var(--fg)] font-medium">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-              <span>31°C, PARTLY CLOUDY</span>
+              <span className="opacity-30 hidden sm:inline">—</span>
+              <span className="w-full sm:w-auto">31°C, Partly Cloudy</span>
             </div>
           </div>
           <p className="font-mono text-sm text-[var(--fg-muted)] max-w-xl">
             You have <span className="text-[var(--fg)]">{metrics.customersCount} active customers</span> and <span className="text-[var(--fg)]">{metrics.entriesCount} entries logged</span>.
           </p>
+        </motion.div>
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }} 
+          animate={{ opacity: 1, scale: 1 }} 
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="shrink-0"
+        >
+          <div className="relative group">
+            <select
+              value={selectedSeasonId}
+              onChange={(e) => setSelectedSeasonId(e.target.value)}
+              className="appearance-none bg-white dark:bg-[#111] border border-[var(--border)] text-[var(--fg)] text-xs font-mono uppercase tracking-widest px-4 py-2.5 pr-10 rounded-xl outline-none focus:ring-2 focus:ring-[var(--fg)]/20 shadow-sm cursor-pointer hover:shadow-md transition-all"
+            >
+              <option value="">All Seasons</option>
+              {seasons.map(s => (
+                <option key={s.id} value={s.id}>{s.name} ({s.status})</option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--fg-muted)] group-hover:text-[var(--fg)] transition-colors">
+              <CalendarDays size={14} />
+            </div>
+          </div>
         </motion.div>
       </section>
 
@@ -221,13 +245,13 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 + i * 0.05, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col gap-3 p-5 rounded-2xl bg-[var(--fg)]/[0.025] border border-[var(--border)]"
+            className="flex flex-col gap-2 sm:gap-3 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#111] shadow-sm border border-[var(--border)] hover:shadow-md transition-shadow cursor-pointer"
           >
-            <div className="flex items-center gap-2 text-[var(--fg-muted)]">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[var(--fg-muted)]">
               {s.icon}
-              <span className="font-mono text-[10px] uppercase tracking-widest">{s.label}</span>
+              <span className="font-mono text-[8px] sm:text-[10px] uppercase tracking-widest leading-tight">{s.label}</span>
             </div>
-            <span className="font-display text-2xl">{s.value}</span>
+            <span className="font-mono font-medium text-xl sm:text-2xl tracking-tighter">{s.value}</span>
           </motion.div>
         ))}
       </section>
@@ -235,13 +259,13 @@ export default function Dashboard() {
       {/* Quick Actions */}
       <section>
         <h2 className="font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)] mb-4">Quick Actions</h2>
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
-            { label: "Add Entry", href: "/entries" },
-            { label: "Record Payment", href: "/payments" },
-            { label: "New Customer", href: "/customers" },
-            { label: "View Analytics", href: "/analytics" },
-            { label: "Generate Bill", href: "/billing" },
+            { label: "Add Entry", href: "/entries", icon: <FileText size={18} />, color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
+            { label: "Record Payment", href: "/payments", icon: <Zap size={18} />, color: "bg-green-500/10 text-green-500 border-green-500/20" },
+            { label: "New Customer", href: "/customers", icon: <Users size={18} />, color: "bg-orange-500/10 text-orange-500 border-orange-500/20" },
+            { label: "Generate Bill", href: "/billing", icon: <FileText size={18} />, color: "bg-purple-500/10 text-purple-500 border-purple-500/20" },
+            { label: "Analytics", href: "/analytics", icon: <Activity size={18} />, color: "bg-rose-500/10 text-rose-500 border-rose-500/20" },
           ].map((a, i) => (
             <motion.div
               key={a.label}
@@ -251,9 +275,12 @@ export default function Dashboard() {
             >
               <Link
                 href={a.href}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest hover:bg-[var(--fg)]/5 hover:border-[var(--fg)]/20 transition-all"
+                className="flex flex-col items-center justify-center gap-3 p-5 rounded-2xl border border-[var(--border)] bg-white dark:bg-[#111] hover:bg-[var(--fg)]/5 hover:-translate-y-1 transition-all cursor-pointer shadow-sm group"
               >
-                {a.label}
+                <div className={`p-3 rounded-full ${a.color} group-hover:scale-110 transition-transform`}>
+                  {a.icon}
+                </div>
+                <span className="font-mono text-[10px] sm:text-xs uppercase tracking-widest text-center">{a.label}</span>
               </Link>
             </motion.div>
           ))}
@@ -261,7 +288,7 @@ export default function Dashboard() {
       </section>
 
       {/* Top Debtors */}
-      <section className="max-w-4xl">
+      <section className="w-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -282,14 +309,14 @@ export default function Dashboard() {
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.6 + i * 0.05 }}
-                    className="flex justify-between items-center p-4 rounded-xl border border-[var(--border)] bg-[var(--fg)]/[0.02] hover:bg-[var(--fg)]/[0.05] transition-all cursor-pointer group"
+                    className="flex justify-between items-center p-4 rounded-xl border border-[var(--border)] bg-white dark:bg-[#111] shadow-sm hover:shadow-md transition-all cursor-pointer group"
                   >
                     <div>
                       <h4 className="font-display group-hover:italic transition-all">{c.name}</h4>
                       <div className="font-mono text-[10px] text-[var(--fg-muted)] mt-1">{c.village}</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-mono text-sm text-red-400">{fmt(c.outstanding)}</div>
+                      <div className="font-mono font-medium text-sm text-red-500">{fmt(c.outstanding)}</div>
                       <div className="font-mono text-[10px] text-[var(--fg-muted)] mt-1">Due</div>
                     </div>
                   </motion.div>

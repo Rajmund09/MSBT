@@ -116,7 +116,7 @@ function SeasonCard({ season, onStatusChange, index }) {
           {season.status === "Active" && (
             <button
               onClick={() => onStatusChange(season, "Closed")}
-              className="flex-1 h-9 rounded-xl text-[11px] font-mono uppercase tracking-widest border border-yellow-500/20 text-yellow-400/70 hover:text-yellow-400 hover:bg-yellow-500/10 transition-all"
+              className="flex-1 h-10 rounded-xl text-[11px] font-mono uppercase tracking-widest border border-yellow-500/20 text-yellow-400/70 hover:text-yellow-400 active:text-yellow-400 hover:bg-yellow-500/10 transition-all"
             >
               Close Season
             </button>
@@ -125,13 +125,13 @@ function SeasonCard({ season, onStatusChange, index }) {
             <>
               <button
                 onClick={() => onStatusChange(season, "Active")}
-                className="flex-1 h-9 rounded-xl text-[11px] font-mono uppercase tracking-widest border border-green-500/20 text-green-400/70 hover:text-green-400 hover:bg-green-500/10 transition-all"
+                className="flex-1 h-10 rounded-xl text-[11px] font-mono uppercase tracking-widest border border-green-500/20 text-green-400/70 hover:text-green-400 active:text-green-400 hover:bg-green-500/10 transition-all"
               >
                 Re-Activate
               </button>
               <button
                 onClick={() => onStatusChange(season, "Archived")}
-                className="h-9 px-3 rounded-xl text-[11px] font-mono uppercase tracking-widest border border-white/10 text-white/30 hover:text-white/60 hover:bg-white/5 transition-all"
+                className="h-10 px-4 rounded-xl text-[11px] font-mono uppercase tracking-widest border border-white/10 text-white/30 hover:text-white/60 active:text-white/60 hover:bg-white/5 transition-all flex items-center"
               >
                 <Archive size={13} />
               </button>

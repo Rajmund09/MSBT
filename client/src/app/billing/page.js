@@ -149,17 +149,17 @@ export default function Billing() {
         ) : (
           <>
             {/* Action buttons */}
-            <div className="flex gap-3 mb-6 print:hidden">
+            <div className="flex flex-col sm:flex-row gap-3 mb-6 print:hidden no-print">
               <button
                 onClick={handlePrint}
-                className="inline-flex items-center gap-2 h-10 px-5 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest hover:bg-[var(--fg)]/5 transition-all"
+                className="inline-flex items-center justify-center gap-2 h-11 sm:h-10 px-5 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest hover:bg-[var(--fg)]/5 transition-all"
               >
                 <Printer size={14} /> Print
               </button>
               <button
                 onClick={handleDownloadPDF}
                 disabled={generating}
-                className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-white text-black font-mono text-xs uppercase tracking-widest hover:bg-white/90 transition-all disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 h-11 sm:h-10 px-5 rounded-xl bg-white text-black font-mono text-xs uppercase tracking-widest hover:bg-white/90 transition-all disabled:opacity-50"
               >
                 {generating ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />}
                 {generating ? "Generating…" : "Download PDF"}
@@ -170,23 +170,23 @@ export default function Billing() {
             <div
               id="bill-print-area"
               ref={billRef}
-              className="bg-[#ffffff] text-[#000000] rounded-2xl overflow-hidden shadow-2xl p-10 max-w-3xl mx-auto"
+              className="bg-[#ffffff] text-[#000000] rounded-2xl overflow-hidden shadow-2xl p-4 sm:p-8 md:p-10 max-w-3xl mx-auto"
               style={{ fontFamily: "'DM Mono', monospace" }}
             >
               {/* Header */}
-              <div className="flex justify-between items-start border-b-2 border-[#000000] pb-8 mb-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0 border-b-2 border-[#000000] pb-6 sm:pb-8 mb-6 sm:mb-8">
                 <div>
-                  <div className="text-4xl font-bold tracking-tighter mb-1">MSBT</div>
-                  <div className="text-sm font-bold">{COMPANY.name}</div>
-                  <div className="text-xs text-[#6b7280] mt-1">{COMPANY.tagline}</div>
-                  <div className="text-xs text-[#6b7280]">{COMPANY.address}</div>
-                  <div className="text-xs text-[#6b7280]">{COMPANY.phone}</div>
+                  <div className="text-2xl sm:text-4xl font-bold tracking-tighter mb-1">MSBT</div>
+                  <div className="text-xs sm:text-sm font-bold">{COMPANY.name}</div>
+                  <div className="text-[10px] sm:text-xs text-[#6b7280] mt-1">{COMPANY.tagline}</div>
+                  <div className="text-[10px] sm:text-xs text-[#6b7280]">{COMPANY.address}</div>
+                  <div className="text-[10px] sm:text-xs text-[#6b7280]">{COMPANY.phone}</div>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs text-[#9ca3af] uppercase tracking-widest mb-1">Invoice</div>
-                  <div className="text-lg font-mono font-bold">{billData.billNo}</div>
-                  <div className="text-xs text-[#6b7280] mt-2">Date: {billData.billDate}</div>
-                  <div className="text-xs text-[#6b7280]">Season: {billData.season?.name}</div>
+                <div className="sm:text-right">
+                  <div className="text-[10px] sm:text-xs text-[#9ca3af] uppercase tracking-widest mb-1">Invoice</div>
+                  <div className="text-sm sm:text-lg font-mono font-bold">{billData.billNo}</div>
+                  <div className="text-[10px] sm:text-xs text-[#6b7280] mt-2">Date: {billData.billDate}</div>
+                  <div className="text-[10px] sm:text-xs text-[#6b7280]">Season: {billData.season?.name}</div>
                 </div>
               </div>
 
@@ -201,65 +201,69 @@ export default function Billing() {
 
               {/* Entries */}
               {billData.entries.length > 0 && (
-                <div className="mb-8">
+                <div className="mb-6 sm:mb-8">
                   <div className="text-[10px] uppercase tracking-widest text-[#9ca3af] mb-3">Services Rendered</div>
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-[#e5e7eb]">
-                        <th className="text-left py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Type</th>
-                        <th className="text-left py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Date</th>
-                        <th className="text-left py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Description</th>
-                        <th className="text-right py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Qty</th>
-                        <th className="text-right py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Rate</th>
-                        <th className="text-right py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {billData.entries.map((e, i) => (
-                        <tr key={e.id} className={`border-b border-[#f3f4f6] ${i % 2 === 0 ? "bg-[#f9fafb]" : ""}`}>
-                          <td className="py-2 font-mono">{e.entry_type}</td>
-                          <td className="py-2 font-mono">{fmtDate(e.entry_date)}</td>
-                          <td className="py-2 font-mono text-[#4b5563]">{e.description || "—"}</td>
-                          <td className="py-2 font-mono text-right">{e.quantity}</td>
-                          <td className="py-2 font-mono text-right">{fmt(e.rate)}</td>
-                          <td className="py-2 font-mono text-right font-bold">{fmt(e.total_amount)}</td>
+                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                    <table className="w-full text-xs min-w-[480px] sm:min-w-0">
+                      <thead>
+                        <tr className="border-b border-[#e5e7eb]">
+                          <th className="text-left py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Type</th>
+                          <th className="text-left py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Date</th>
+                          <th className="text-left py-2 font-mono uppercase tracking-wider text-[#9ca3af] hidden sm:table-cell">Description</th>
+                          <th className="text-right py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Qty</th>
+                          <th className="text-right py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Rate</th>
+                          <th className="text-right py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Amount</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {billData.entries.map((e, i) => (
+                          <tr key={e.id} className={`border-b border-[#f3f4f6] ${i % 2 === 0 ? "bg-[#f9fafb]" : ""}`}>
+                            <td className="py-2 font-mono">{e.entry_type}</td>
+                            <td className="py-2 font-mono">{fmtDate(e.entry_date)}</td>
+                            <td className="py-2 font-mono text-[#4b5563] hidden sm:table-cell">{e.description || "—"}</td>
+                            <td className="py-2 font-mono text-right">{e.quantity}</td>
+                            <td className="py-2 font-mono text-right">{fmt(e.rate)}</td>
+                            <td className="py-2 font-mono text-right font-bold">{fmt(e.total_amount)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
 
               {/* Payments */}
               {billData.payments.length > 0 && (
-                <div className="mb-8">
+                <div className="mb-6 sm:mb-8">
                   <div className="text-[10px] uppercase tracking-widest text-[#9ca3af] mb-3">Payments Received</div>
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-[#e5e7eb]">
-                        <th className="text-left py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Date</th>
-                        <th className="text-left py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Mode</th>
-                        <th className="text-left py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Reference</th>
-                        <th className="text-right py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {billData.payments.map((p, i) => (
-                        <tr key={p.id} className={`border-b border-[#f3f4f6] ${i % 2 === 0 ? "bg-[#f9fafb]" : ""}`}>
-                          <td className="py-2 font-mono">{fmtDate(p.payment_date)}</td>
-                          <td className="py-2 font-mono">{p.payment_mode}</td>
-                          <td className="py-2 font-mono text-[#4b5563]">{p.reference_no || "—"}</td>
-                          <td className="py-2 font-mono text-right text-[#15803d] font-bold">{fmt(p.amount)}</td>
+                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                    <table className="w-full text-xs min-w-[320px] sm:min-w-0">
+                      <thead>
+                        <tr className="border-b border-[#e5e7eb]">
+                          <th className="text-left py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Date</th>
+                          <th className="text-left py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Mode</th>
+                          <th className="text-left py-2 font-mono uppercase tracking-wider text-[#9ca3af] hidden sm:table-cell">Reference</th>
+                          <th className="text-right py-2 font-mono uppercase tracking-wider text-[#9ca3af]">Amount</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {billData.payments.map((p, i) => (
+                          <tr key={p.id} className={`border-b border-[#f3f4f6] ${i % 2 === 0 ? "bg-[#f9fafb]" : ""}`}>
+                            <td className="py-2 font-mono">{fmtDate(p.payment_date)}</td>
+                            <td className="py-2 font-mono">{p.payment_mode}</td>
+                            <td className="py-2 font-mono text-[#4b5563] hidden sm:table-cell">{p.reference_no || "—"}</td>
+                            <td className="py-2 font-mono text-right text-[#15803d] font-bold">{fmt(p.amount)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
 
               {/* Totals */}
               <div className="border-t-2 border-[#000000] pt-6 flex justify-end">
-                <div className="w-64">
+                <div className="w-full sm:w-64">
                   <div className="flex justify-between py-1 text-sm">
                     <span className="text-[#4b5563]">Total Charges</span>
                     <span className="font-mono">{fmt(billData.totalRevenue)}</span>
@@ -278,14 +282,14 @@ export default function Billing() {
               </div>
 
               {/* Signature */}
-              <div className="mt-16 pt-6 border-t border-[#e5e7eb] flex justify-between items-end">
+              <div className="mt-10 sm:mt-16 pt-6 border-t border-[#e5e7eb] flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 sm:gap-0">
                 <div>
                   <div className="w-32 border-b border-[#9ca3af] mb-1" />
                   <div className="text-[10px] text-[#9ca3af] uppercase tracking-widest">Customer Signature</div>
                 </div>
-                <div className="text-right">
+                <div className="sm:text-right">
                   <div className="text-xs font-bold mb-1">{COMPANY.name}</div>
-                  <div className="w-32 border-b border-[#9ca3af] mb-1 ml-auto" />
+                  <div className="w-32 border-b border-[#9ca3af] mb-1 sm:ml-auto" />
                   <div className="text-[10px] text-[#9ca3af] uppercase tracking-widest">Authorised Signature</div>
                 </div>
               </div>

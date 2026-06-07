@@ -11,6 +11,7 @@ import {
   PageHeader, AddButton, EmptyState, Skeleton,
   FormField, Input, Select, Textarea, SubmitButton
 } from "@/components/ui/index";
+import { AdaptiveActions, AdaptiveTooltip } from "@/components/ui/AdaptiveUI";
 import { exportToExcel, exportToCSV, formatPaymentsForExport } from "@/utils/export";
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
@@ -160,17 +161,22 @@ function PaymentRow({ payment, onDelete, index }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 ml-10 sm:ml-0">
+      <div className="flex items-center gap-3 sm:gap-4 ml-10 sm:ml-0 shrink-0">
         <div className="text-right">
           <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--fg-muted)]">Amount</p>
-          <p className="font-mono text-sm text-green-400">{fmt(payment.amount)}</p>
+          <p className="font-mono text-xs sm:text-sm text-green-400">{fmt(payment.amount)}</p>
         </div>
-        <button
-          onClick={() => onDelete(payment)}
-          className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/5 hover:bg-red-500/15 text-red-400/50 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100"
-        >
-          <Trash2 size={14} />
-        </button>
+        <AdaptiveActions>
+          <AdaptiveTooltip content="Delete Payment">
+            <button
+              onClick={() => onDelete(payment)}
+              aria-label="Delete payment"
+              className="w-9 h-9 rounded-lg flex items-center justify-center bg-red-500/5 hover:bg-red-500/15 active:bg-red-500/20 text-red-400/60 hover:text-red-400 transition-all"
+            >
+              <Trash2 size={14} />
+            </button>
+          </AdaptiveTooltip>
+        </AdaptiveActions>
       </div>
     </motion.div>
   );

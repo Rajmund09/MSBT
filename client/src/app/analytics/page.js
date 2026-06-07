@@ -113,11 +113,11 @@ export default function Analytics() {
         }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
         {/* Revenue vs Collections Trend */}
         <ChartCard title="Revenue vs Collections (Monthly)" loading={loading}>
-          <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={trendData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={trendData} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
               <defs>
                 <linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#f5f5f5" stopOpacity={0.15} />
@@ -140,8 +140,8 @@ export default function Analytics() {
 
         {/* By Entry Type */}
         <ChartCard title="Revenue by Entry Type" loading={loading}>
-          <div className="flex items-center gap-6">
-            <ResponsiveContainer width="50%" height={200}>
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+            <ResponsiveContainer width="100%" height={180}>
               <PieChart>
                 <Pie
                   data={data?.byType || []}
@@ -149,8 +149,8 @@ export default function Analytics() {
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  outerRadius={80}
-                  innerRadius={45}
+                  outerRadius={70}
+                  innerRadius={38}
                   strokeWidth={0}
                 >
                   {(data?.byType || []).map((entry, i) => (
@@ -160,9 +160,9 @@ export default function Analytics() {
                 <Tooltip content={<CustomTooltip />} />
               </PieChart>
             </ResponsiveContainer>
-            <div className="flex flex-col gap-3 flex-1">
+            <div className="flex flex-row sm:flex-col gap-3 sm:gap-3 flex-wrap justify-center sm:justify-start shrink-0">
               {(data?.byType || []).map((t, i) => (
-                <div key={t.name} className="flex items-center justify-between">
+                <div key={t.name} className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: THEME_COLORS[t.name] || COLORS[i] }} />
                     <span className="font-mono text-xs text-[var(--fg-muted)]">{t.name}</span>
@@ -176,11 +176,11 @@ export default function Analytics() {
 
         {/* Top Customers */}
         <ChartCard title="Top 10 Customers by Revenue" loading={loading}>
-          <ResponsiveContainer width="100%" height={260}>
+          <ResponsiveContainer width="100%" height={240}>
             <BarChart data={(data?.topCustomers || []).map(c => ({ name: c.name.split(" ")[0], revenue: c.revenue, paid: c.paid }))} layout="vertical" margin={{ left: 0, right: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis type="number" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10, fontFamily: "monospace" }} tickFormatter={fmtShort} />
-              <YAxis type="category" dataKey="name" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 10, fontFamily: "monospace" }} width={60} />
+              <XAxis type="number" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9, fontFamily: "monospace" }} tickFormatter={fmtShort} />
+              <YAxis type="category" dataKey="name" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 9, fontFamily: "monospace" }} width={52} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="revenue" name="Revenue" fill="rgba(255,255,255,0.15)" radius={[0, 4, 4, 0]} />
               <Bar dataKey="paid" name="Paid" fill="rgba(52,211,153,0.4)" radius={[0, 4, 4, 0]} />
@@ -190,11 +190,11 @@ export default function Analytics() {
 
         {/* Season Comparison */}
         <ChartCard title="Season Comparison" loading={loading}>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={(data?.seasonStats || []).map(s => ({ name: s.name.split(" ").slice(0,2).join(" "), revenue: s.revenue, paid: s.paid }))} margin={{ left: 0, right: 10 }}>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={(data?.seasonStats || []).map(s => ({ name: s.name.split(" ").slice(0,2).join(" "), revenue: s.revenue, paid: s.paid }))} margin={{ left: -10, right: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9, fontFamily: "monospace" }} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10, fontFamily: "monospace" }} tickFormatter={fmtShort} />
+              <XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 8, fontFamily: "monospace" }} />
+              <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9, fontFamily: "monospace" }} tickFormatter={fmtShort} width={42} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="revenue" name="Revenue" fill="rgba(255,255,255,0.15)" radius={[4, 4, 0, 0]} />
               <Bar dataKey="paid" name="Paid" fill="rgba(52,211,153,0.4)" radius={[4, 4, 0, 0]} />

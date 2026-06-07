@@ -128,28 +128,28 @@ export default function CustomerLedger() {
         </div>
 
         <div className="flex gap-2">
-          <button onClick={() => handleExport("csv")} className="h-10 px-4 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--fg)]/5 transition-all inline-flex items-center gap-2">
-            <Download size={14} /> CSV
+          <button onClick={() => handleExport("csv")} className="h-10 px-3 sm:px-4 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--fg)]/5 transition-all inline-flex items-center gap-1.5 sm:gap-2">
+            <Download size={14} /> <span className="hidden sm:inline">CSV</span>
           </button>
-          <button onClick={() => handleExport("excel")} className="h-10 px-4 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--fg)]/5 transition-all inline-flex items-center gap-2">
-            <Download size={14} /> Excel
+          <button onClick={() => handleExport("excel")} className="h-10 px-3 sm:px-4 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--fg)]/5 transition-all inline-flex items-center gap-1.5 sm:gap-2">
+            <Download size={14} /> <span className="hidden sm:inline">Excel</span>
           </button>
         </div>
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-6 rounded-3xl bg-[var(--fg)]/[0.02] border border-[var(--border)] flex flex-col gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="p-4 sm:p-6 rounded-3xl bg-[var(--fg)]/[0.02] border border-[var(--border)] flex flex-col gap-2">
           <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)]">Total Revenue</span>
-          <span className="font-display text-3xl">{fmt(totalRevenue)}</span>
+          <span className="font-display text-2xl sm:text-3xl">{fmt(totalRevenue)}</span>
         </div>
-        <div className="p-6 rounded-3xl bg-[var(--fg)]/[0.02] border border-[var(--border)] flex flex-col gap-2">
+        <div className="p-4 sm:p-6 rounded-3xl bg-[var(--fg)]/[0.02] border border-[var(--border)] flex flex-col gap-2">
           <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)]">Total Paid</span>
-          <span className="font-display text-3xl text-green-400">{fmt(totalPaid)}</span>
+          <span className="font-display text-2xl sm:text-3xl text-green-400">{fmt(totalPaid)}</span>
         </div>
-        <div className={`p-6 rounded-3xl border flex flex-col gap-2 ${outstanding > 0 ? "bg-red-500/5 border-red-500/20" : "bg-[var(--fg)]/[0.02] border-[var(--border)]"}`}>
+        <div className={`p-4 sm:p-6 rounded-3xl border flex flex-col gap-2 ${outstanding > 0 ? "bg-red-500/5 border-red-500/20" : "bg-[var(--fg)]/[0.02] border-[var(--border)]"}`}>
           <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)]">Balance Due</span>
-          <span className={`font-display text-3xl ${outstanding > 0 ? "text-red-400" : ""}`}>{fmt(outstanding)}</span>
+          <span className={`font-display text-2xl sm:text-3xl ${outstanding > 0 ? "text-red-400" : ""}`}>{fmt(outstanding)}</span>
         </div>
       </div>
 
@@ -173,10 +173,10 @@ export default function CustomerLedger() {
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${t.type === "entry" ? "bg-purple-500/10 text-purple-400" : "bg-green-500/10 text-green-400"}`}>
                     {t.type === "entry" ? <FileText size={16} /> : <Wallet size={16} />}
                   </div>
-                  <div>
-                    <p className="font-mono text-sm text-[var(--fg)]">{t.desc}</p>
+                <div>
+                    <p className="font-mono text-xs sm:text-sm text-[var(--fg)] break-words leading-snug">{t.desc}</p>
                     <p className="font-mono text-[10px] text-[var(--fg-muted)] mt-1">{fmtDate(t.date)}</p>
-                  </div>
+                </div>
                 </div>
                 <div className="text-right ml-14 sm:ml-0">
                   <p className={`font-mono text-base ${t.type === "entry" ? "" : "text-green-400"}`}>
