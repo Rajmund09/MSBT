@@ -27,10 +27,13 @@ export function AuthProvider({ children }) {
           id: data.id,
           username: data.username,
           role: data.role,
-          fullName: data.full_name,
+          full_name: data.full_name,
           phone: data.phone,
+          permissions: data.permissions || {},
+          profile_photo: data.profile_photo,
         };
         setUser(u);
+        setStoredUser(u, !!localStorage.getItem("token"));
       })
       .catch(() => {
         clearSession();
@@ -39,8 +42,28 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const data = await api.getMe();
+      const u = {
+        id: data.id,
+        username: data.username,
+        role: data.role,
+        full_name: data.full_name,
+        phone: data.phone,
+        permissions: data.permissions || {},
+        profile_photo: data.profile_photo,
+      };
+      setUser(u);
+      setStoredUser(u, !!localStorage.getItem("token"));
+      return u;
+    } catch (err) {
+      console.error("Failed to refresh user:", err);
+    }
+  }, []);
+
   const login = useCallback(async (username, password, remember = false) => {
-    const data = await api.login(username, password);
+    const data = await api.login(username, password, remember);
     setToken(data.token, remember);
     setStoredUser(data.user, remember);
     setUser(data.user);
@@ -53,8 +76,16 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  const hasPermission = useCallback((moduleName, action) => {
+    if (!user) return false;
+    if (user.role === 'Owner') return true;
+    const perms = user.permissions || {};
+    const modPerms = perms[moduleName] || [];
+    return modPerms.includes(action);
+  }, [user]);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, hasPermission, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

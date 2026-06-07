@@ -12,7 +12,7 @@ export default function LoginPage() {
   const { login, user } = useAuth();
   const router = useRouter();
 
-  const [form, setForm] = useState({ username: "", password: "", remember: false });
+  const [form, setForm] = useState({ username: "", password: "", remember: true });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -49,7 +49,10 @@ export default function LoginPage() {
   const letters = ["M", "S", "B", "T"];
 
   return (
-    <div className="fixed inset-0 bg-[#050505] flex items-center justify-center p-4 overflow-hidden">
+    <div
+      className="fixed inset-0 bg-[#050505] flex items-center justify-center overflow-hidden"
+      style={{ padding: 'max(1rem, env(safe-area-inset-top, 1rem)) 1rem max(1rem, env(safe-area-inset-bottom, 1rem)) 1rem' }}
+    >
 
       {/* Background grain */}
       <div 
@@ -74,7 +77,7 @@ export default function LoginPage() {
           {/* Top glass highlight */}
           <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-          <div className="px-10 pt-12 pb-10">
+          <div className="px-5 sm:px-10 pt-8 sm:pt-12 pb-6 sm:pb-10">
             {/* MSBT Logo */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -89,7 +92,7 @@ export default function LoginPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 + i * 0.07, duration: 0.6, ease: PREMIUM_EASE }}
-                    className="font-display text-5xl tracking-tighter text-white leading-none"
+                    className="font-display text-4xl sm:text-5xl tracking-tighter text-white leading-none"
                   >
                     {l}
                   </motion.span>
@@ -176,7 +179,7 @@ export default function LoginPage() {
                   </div>
                 </div>
                 <span className="font-mono text-[11px] text-white/40 group-hover:text-white/60 uppercase tracking-widest transition-colors">
-                  Remember me for 12 hours
+                  Keep me signed in
                 </span>
               </label>
 
@@ -214,7 +217,7 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <div className="px-10 py-5 border-t border-white/[0.05] text-center">
+          <div className="px-5 sm:px-10 py-4 sm:py-5 border-t border-white/[0.05] text-center">
             <p className="font-mono text-[10px] text-white/20 uppercase tracking-widest">
               MSBT Business Operating System © 2026
             </p>
