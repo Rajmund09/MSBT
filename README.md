@@ -62,3 +62,14 @@ npm run dev
 - **Parametrized Queries**: Full protection against SQL injection.
 - **Audit Logs**: Automatic, immutable activity tracing for all modification operations.
 - **Input Verification**: Schema-driven validation using `express-validator`.
+
+---
+
+## ✨ Recent Features & Enhancements
+- **Advanced UI/UX**: Custom cursors, pixel transitions, and floating navigation for a fluid, modern, app-like feel.
+- **Global Search**: Instantly find customers, entries, and records across the entire platform.
+- **Analytics & Billing**: Dedicated modules for deep financial insights and streamlined invoice management.
+- **Authentication & User Management**: Secure login flow, AuthContext for robust session state management, and user administration pages.
+- **Audio Feedback & Export Utilities**: Subtle audio cues for interactions and robust data export capabilities (CSV/Excel).
+- **Interactive Components**: Comprehensive set of reusable UI elements including Modals, Toasts, and Confirm Dialogs.
+
