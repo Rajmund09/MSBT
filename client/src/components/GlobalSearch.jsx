@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Search, X, Users, FileText, Wallet, CalendarDays, ArrowRight } from "lucide-react";
 import { api } from "@/utils/api";
+import MagneticButton from "@/components/MagneticButton";
 
 const ICONS = {
   customer: <Users size={14} />,
@@ -110,17 +111,22 @@ export default function GlobalSearch() {
 
   return (
     <>
-      {/* Trigger button */}
+      {/* Desktop trigger removed per user request */}
+
+      {/* Mobile trigger — icon button, always visible on small screens */}
       <motion.button
         onClick={() => setOpen(true)}
-        className="fixed top-6 right-6 z-[8000] hidden md:flex items-center gap-2 h-9 px-4 rounded-xl bg-[var(--fg)]/[0.04] border border-[var(--border)] text-[var(--fg-muted)] text-xs font-mono hover:bg-[var(--fg)]/[0.08] transition-all"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
+        aria-label="Open search"
+        className="fixed z-[8000] md:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--fg)]/[0.06] border border-[var(--border)] text-[var(--fg-muted)]"
+        style={{
+          top: `calc(1rem + env(safe-area-inset-top, 0px))`,
+          right: `calc(1rem + env(safe-area-inset-right, 0px))`,
+        }}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 1, duration: 0.5 }}
       >
-        <Search size={13} />
-        <span>Search</span>
-        <span className="ml-1 text-[10px] opacity-50">⌘K</span>
+        <Search size={16} />
       </motion.button>
 
       <AnimatePresence>

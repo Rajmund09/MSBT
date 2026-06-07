@@ -35,31 +35,43 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "ma
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[9000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[9000] flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm"
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 20, filter: "blur(10px)" }}
-            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, scale: 0.92, y: 20, filter: "blur(10px)" }}
+            initial={{ opacity: 0, y: 60, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: 60, filter: "blur(10px)" }}
             transition={{ type: "spring", stiffness: 380, damping: 28 }}
-            className={`relative w-full ${maxWidth} bg-[#0f0f0f] border border-white/[0.08] rounded-3xl shadow-2xl overflow-hidden`}
+            className={`relative w-full ${maxWidth} bg-[#0f0f0f] border border-white/[0.08] 
+              rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden
+              max-h-[92dvh] sm:max-h-[85vh]
+              flex flex-col`}
+            style={{
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            }}
           >
             {/* Glass highlight strip at top */}
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
+            {/* Drag handle indicator (mobile only) */}
+            <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-white/20" />
+            </div>
+
             {/* Header */}
-            <div className="flex items-center justify-between px-8 pt-8 pb-6 border-b border-white/[0.06]">
-              <h2 className="font-display text-2xl tracking-tight text-white">{title}</h2>
+            <div className="flex items-center justify-between px-5 sm:px-8 pt-4 sm:pt-8 pb-4 sm:pb-6 border-b border-white/[0.06] shrink-0">
+              <h2 className="font-display text-xl sm:text-2xl tracking-tight text-white">{title}</h2>
               <button
                 onClick={onClose}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all"
+                aria-label="Close modal"
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all"
               >
                 <X size={16} />
               </button>
             </div>
 
             {/* Content */}
-            <div className="px-8 py-6 overflow-y-auto max-h-[80vh]">
+            <div className="px-5 sm:px-8 py-5 sm:py-6 overflow-y-auto flex-1">
               {children}
             </div>
           </motion.div>
