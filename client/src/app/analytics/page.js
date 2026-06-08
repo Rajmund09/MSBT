@@ -8,7 +8,7 @@ import {
 } from "recharts";
 import { api } from "@/utils/api";
 import { useToast } from "@/components/ui/Toast";
-import { PageHeader, Skeleton } from "@/components/ui/index";
+import { PageHeader, Skeleton, Select } from "@/components/ui/index";
 import { BarChart2 } from "lucide-react";
 
 const COLORS = ["#f5f5f5", "#a0a0a0", "#606060", "#303030", "#888", "#bbb", "#ddd", "#444", "#999", "#ccc"];
@@ -102,14 +102,14 @@ export default function Analytics() {
         title="Analytics"
         description="Business intelligence & performance metrics"
         action={
-          <select
+          <Select
             value={selectedSeason}
             onChange={e => setSelectedSeason(e.target.value)}
-            className="h-10 px-4 rounded-xl bg-[var(--fg)]/[0.04] border border-[var(--border)] text-[var(--fg)] text-xs font-mono focus:outline-none"
+            className="w-48 h-10"
           >
             <option value="">All Seasons</option>
             {seasons.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
+          </Select>
         }
       />
 

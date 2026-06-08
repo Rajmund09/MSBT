@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Plus, Edit2, Trash2, ShieldAlert, Crown, User, Search, Filter, ArrowUpDown, Download, Activity, Check } from "lucide-react";
 import { api } from "@/utils/api";
@@ -25,6 +26,7 @@ const ROLE_CONFIG = {
 
 function StaffSlideOver({ isOpen, onClose, initial = null, onSubmit, loading, currentUser }) {
   const isEdit = !!initial;
+  const [mounted, setMounted] = useState(false);
   const [form, setForm] = useState({
     username: "",
     fullName: "",
@@ -35,6 +37,10 @@ function StaffSlideOver({ isOpen, onClose, initial = null, onSubmit, loading, cu
     permissions: {},
   });
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -48,7 +54,13 @@ function StaffSlideOver({ isOpen, onClose, initial = null, onSubmit, loading, cu
         permissions: initial?.permissions || {},
       });
       setErrors({});
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
     }
+    return () => { 
+      document.body.style.overflow = ""; 
+    };
   }, [isOpen, initial]);
 
   const validate = () => {
@@ -67,7 +79,7 @@ function StaffSlideOver({ isOpen, onClose, initial = null, onSubmit, loading, cu
 
   const set = (f) => (e) => setForm(p => ({ ...p, [f]: e.target.value }));
 
-  return (
+  const content = (
     <AnimatePresence>
       {isOpen && (
         <>
@@ -97,7 +109,7 @@ function StaffSlideOver({ isOpen, onClose, initial = null, onSubmit, loading, cu
             </div>
 
             {/* Body */}
-            <div className="flex-1 overflow-y-auto p-6 bg-[var(--bg)]">
+            <div data-lenis-prevent="true" className="flex-1 overflow-y-auto overscroll-contain p-6 bg-[var(--bg)]">
               <form id="staff-form" onSubmit={handleSubmit} className="flex flex-col gap-8 max-w-xl mx-auto">
                 {/* Profile Section */}
                 <div className="flex flex-col gap-5">
@@ -168,6 +180,8 @@ function StaffSlideOver({ isOpen, onClose, initial = null, onSubmit, loading, cu
       )}
     </AnimatePresence>
   );
+
+  return mounted ? createPortal(content, document.body) : null;
 }
 
 function StaffRow({ u, currentUser, onEdit, onDelete, index }) {
@@ -410,13 +424,13 @@ export default function StaffManagementPage() {
             className="w-full h-12 pl-11 pr-4 rounded-xl bg-white dark:bg-[#111] border border-[var(--border)] shadow-sm text-[var(--fg)] placeholder-[var(--fg-muted)] text-sm font-mono focus:outline-none focus:border-[var(--fg)]/30 focus:shadow-md transition-all"
           />
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2 shrink-0 flex-wrap">
           <div className="relative">
             <Filter size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--fg-muted)] pointer-events-none" />
-            <select
+            <Select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
-              className="h-12 pl-10 pr-10 rounded-xl bg-white dark:bg-[#111] border border-[var(--border)] shadow-sm text-[var(--fg)] text-xs font-mono uppercase tracking-widest focus:outline-none focus:border-[var(--fg)]/30 hover:shadow-md transition-all appearance-none cursor-pointer"
+              className="w-48 h-12"
             >
               <option value="All">All Roles</option>
               <option value="Owner">Owner</option>
@@ -424,7 +438,7 @@ export default function StaffManagementPage() {
               <option value="Manager">Manager</option>
               <option value="Accountant">Accountant</option>
               <option value="Employee">Employee</option>
-            </select>
+            </Select>
           </div>
         </div>
       </div>

@@ -10,7 +10,7 @@ import Modal from "@/components/ui/Modal";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import {
   PageHeader, AddButton, EmptyState, Skeleton,
-  FormField, Input, Textarea, SubmitButton
+  FormField, Input, Textarea, SubmitButton, Select
 } from "@/components/ui/index";
 import { AdaptiveActions, AdaptiveTooltip } from "@/components/ui/AdaptiveUI";
 import { exportToExcel, exportToCSV, formatCustomersForExport } from "@/utils/export";
@@ -80,14 +80,13 @@ function CustomerForm({ initial = {}, onSubmit, loading }) {
       </FormField>
       {initial.id && (
         <FormField label="Status">
-          <select
+          <Select
             value={form.status}
             onChange={set("status")}
-            className="w-full h-11 px-4 rounded-xl bg-[#0f0f0f] border border-white/[0.08] text-white text-sm font-mono focus:outline-none focus:border-white/20 transition-all appearance-none"
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
-          </select>
+          </Select>
         </FormField>
       )}
       <SubmitButton loading={loading}>
@@ -196,6 +195,7 @@ export default function Customers() {
   const [seasons, setSeasons] = useState([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("all");
+  const [selectedSort, setSelectedSort] = useState("newest");
 
   const { hasPermission } = useAuth();
   const canCreate = hasPermission('customers', 'create');
@@ -275,7 +275,7 @@ export default function Customers() {
 
   // Filtered list
   const filtered = useMemo(() => {
-    let result = customers;
+    let result = [...customers];
     
     // Apply payment status filter
     if (paymentStatus === "outstanding") {
@@ -285,14 +285,30 @@ export default function Customers() {
     }
 
     // Apply search
-    if (!search.trim()) return result;
-    const q = search.toLowerCase();
-    return result.filter(c =>
-      c.name.toLowerCase().includes(q) ||
-      c.village.toLowerCase().includes(q) ||
-      c.phone.includes(q)
-    );
-  }, [customers, search, paymentStatus]);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        c.village.toLowerCase().includes(q) ||
+        c.phone.includes(q)
+      );
+    }
+
+    // Apply sort
+    result.sort((a, b) => {
+      if (selectedSort === "name_asc") return a.name.localeCompare(b.name);
+      if (selectedSort === "name_desc") return b.name.localeCompare(a.name);
+      
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      
+      if (selectedSort === "oldest") return dateA - dateB;
+      // Default newest
+      return dateB - dateA;
+    });
+
+    return result;
+  }, [customers, search, paymentStatus, selectedSort]);
 
   const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 
@@ -347,26 +363,36 @@ export default function Customers() {
             className="w-full h-11 pl-10 pr-4 rounded-xl bg-white dark:bg-[var(--fg)]/[0.04] border border-[var(--border)] text-[var(--fg)] placeholder-[var(--fg-muted)] text-sm font-mono focus:outline-none focus:border-[var(--fg)]/20 shadow-sm transition-all"
           />
         </div>
-        <div className="flex gap-4">
-          <select
+        <div className="flex gap-4 flex-wrap">
+          <Select
             value={selectedSeasonId}
             onChange={(e) => setSelectedSeasonId(e.target.value)}
-            className="h-11 px-4 rounded-xl bg-white dark:bg-[var(--fg)]/[0.04] border border-[var(--border)] text-[var(--fg)] text-xs font-mono uppercase tracking-widest focus:outline-none focus:border-[var(--fg)]/20 shadow-sm appearance-none cursor-pointer pr-10 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:calc(100%-10px)_center]"
+            className="w-48 shrink-0 h-11"
           >
             <option value="">All Seasons</option>
             {seasons.map(s => (
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
-          </select>
-          <select
+          </Select>
+          <Select
+            value={selectedSort}
+            onChange={(e) => setSelectedSort(e.target.value)}
+            className="w-48 shrink-0 h-11"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="name_asc">Name (A-Z)</option>
+            <option value="name_desc">Name (Z-A)</option>
+          </Select>
+          <Select
             value={paymentStatus}
             onChange={(e) => setPaymentStatus(e.target.value)}
-            className="h-11 px-4 rounded-xl bg-white dark:bg-[var(--fg)]/[0.04] border border-[var(--border)] text-[var(--fg)] text-xs font-mono uppercase tracking-widest focus:outline-none focus:border-[var(--fg)]/20 shadow-sm appearance-none cursor-pointer pr-10 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:calc(100%-10px)_center]"
+            className="w-48 shrink-0 h-11"
           >
             <option value="all">All Status</option>
             <option value="outstanding">Outstanding Due</option>
             <option value="paid">Fully Paid</option>
-          </select>
+          </Select>
         </div>
       </div>
 
