@@ -104,7 +104,7 @@ function PaymentForm({ onSubmit, loading }) {
                 key={m}
                 type="button"
                 onClick={() => setForm(p => ({ ...p, paymentMode: m }))}
-                className={`h-10 rounded-xl text-[10px] font-mono uppercase tracking-widest border transition-all flex items-center justify-center gap-1.5 ${form.paymentMode === m ? c.color : "border-white/[0.08] text-white/40 hover:text-white/60"}`}
+                className={`min-h-10 py-2 h-auto rounded-xl text-[10px] font-mono uppercase tracking-widest border transition-all flex items-center justify-center gap-1.5 text-center ${form.paymentMode === m ? c.color : "border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--fg)]/5"}`}
               >
                 {c.icon} {m}
               </button>
