@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Users, Plus, Search, Edit2, Trash2, ChevronRight, Phone, MapPin, TrendingUp, Download } from "lucide-react";
+import { Users, Plus, Search, Edit2, Trash2, ChevronRight, Phone, MapPin, TrendingUp, Download, Filter } from "lucide-react";
 import { api } from "@/utils/api";
 import { useToast } from "@/components/ui/Toast";
 import Modal from "@/components/ui/Modal";
@@ -196,6 +196,7 @@ export default function Customers() {
   const [selectedSeasonId, setSelectedSeasonId] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("all");
   const [selectedSort, setSelectedSort] = useState("newest");
+  const [showFilters, setShowFilters] = useState(false);
 
   const { hasPermission } = useAuth();
   const canCreate = hasPermission('customers', 'create');
@@ -352,48 +353,64 @@ export default function Customers() {
       />
 
       {/* Filters & Search */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <div className="relative flex-1">
-          <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--fg-muted)]" />
-          <input
-            type="text"
-            placeholder="Search by name, village or phone…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-11 pl-10 pr-4 rounded-xl bg-white dark:bg-[var(--fg)]/[0.04] border border-[var(--border)] text-[var(--fg)] placeholder-[var(--fg-muted)] text-sm font-mono focus:outline-none focus:border-[var(--fg)]/20 shadow-sm transition-all"
-          />
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--fg-muted)]" />
+            <input
+              type="text"
+              placeholder="Search by name, village or phone…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full h-11 pl-10 pr-4 rounded-xl bg-white dark:bg-[var(--fg)]/[0.04] border border-[var(--border)] text-[var(--fg)] placeholder-[var(--fg-muted)] text-sm font-mono focus:outline-none focus:border-[var(--fg)]/20 shadow-sm transition-all"
+            />
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`h-11 px-4 rounded-xl border flex items-center justify-center gap-2 transition-all shrink-0 ${showFilters ? "bg-[var(--fg)] text-[var(--bg)] border-[var(--fg)]" : "bg-white dark:bg-[var(--fg)]/[0.04] border-[var(--border)] text-[var(--fg)] hover:border-[var(--fg)]/30"}`}
+          >
+            <Filter size={15} />
+            <span className="text-xs font-mono uppercase tracking-widest hidden sm:inline">Filters</span>
+          </button>
         </div>
-        <div className="flex gap-4 flex-wrap">
-          <Select
-            value={selectedSeasonId}
-            onChange={(e) => setSelectedSeasonId(e.target.value)}
-            className="w-48 shrink-0 h-11"
+        
+        {showFilters && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className="flex gap-4 flex-wrap p-4 rounded-2xl bg-[var(--fg)]/[0.02] border border-[var(--border)]"
           >
-            <option value="">All Seasons</option>
-            {seasons.map(s => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </Select>
-          <Select
-            value={selectedSort}
-            onChange={(e) => setSelectedSort(e.target.value)}
-            className="w-48 shrink-0 h-11"
-          >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="name_asc">Name (A-Z)</option>
-            <option value="name_desc">Name (Z-A)</option>
-          </Select>
-          <Select
-            value={paymentStatus}
-            onChange={(e) => setPaymentStatus(e.target.value)}
-            className="w-48 shrink-0 h-11"
-          >
-            <option value="all">All Status</option>
-            <option value="outstanding">Outstanding Due</option>
-            <option value="paid">Fully Paid</option>
-          </Select>
-        </div>
+            <Select
+              value={selectedSeasonId}
+              onChange={(e) => setSelectedSeasonId(e.target.value)}
+              className="w-full sm:w-48 shrink-0 h-11"
+            >
+              <option value="">All Seasons</option>
+              {seasons.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </Select>
+            <Select
+              value={selectedSort}
+              onChange={(e) => setSelectedSort(e.target.value)}
+              className="w-full sm:w-48 shrink-0 h-11"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="name_asc">Name (A-Z)</option>
+              <option value="name_desc">Name (Z-A)</option>
+            </Select>
+            <Select
+              value={paymentStatus}
+              onChange={(e) => setPaymentStatus(e.target.value)}
+              className="w-full sm:w-48 shrink-0 h-11"
+            >
+              <option value="all">All Status</option>
+              <option value="outstanding">Outstanding Due</option>
+              <option value="paid">Fully Paid</option>
+            </Select>
+          </motion.div>
+        )}
       </div>
 
       {/* Content */}
