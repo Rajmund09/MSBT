@@ -1,6 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown, Check } from "lucide-react";
 
 // Form field wrapper
 export function FormField({ label, error, children, required }) {
@@ -45,15 +47,75 @@ export function Textarea({ className = "", error, ...props }) {
 }
 
 // Select dropdown — min-height 44px for touch targets
-export function Select({ className = "", error, children, ...props }) {
+export function Select({ className = "", error, children, value, onChange, ...props }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  // Extract options from children natively
+  const options = React.Children.toArray(children).map(child => {
+    if (child.type === 'option') {
+      return { value: child.props.value, label: child.props.children };
+    }
+    return null;
+  }).filter(Boolean);
+
+  const selectedOption = options.find(o => String(o.value) === String(value));
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = (val) => {
+    if (onChange) {
+      onChange({ target: { value: val } });
+    }
+    setIsOpen(false);
+  };
+
   return (
-    <select
-      {...props}
-      className={`w-full px-4 rounded-xl bg-[var(--bg)] border ${error ? 'border-red-400 focus:border-red-500' : 'border-[var(--border)] focus:border-[var(--fg)]/30'} text-[var(--fg)] text-sm font-mono focus:outline-none transition-all appearance-none cursor-pointer ${className}`}
-      style={{ minHeight: '44px', ...props.style }}
-    >
-      {children}
-    </select>
+    <div className={`relative w-full ${className}`} ref={containerRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full px-4 rounded-xl bg-[var(--bg)] border ${error ? 'border-red-400 focus:border-red-500' : 'border-[var(--border)] focus:border-[var(--fg)]/30'} text-[var(--fg)] text-sm font-mono focus:outline-none transition-all cursor-pointer flex items-center justify-between text-left`}
+        style={{ minHeight: '44px', ...props.style }}
+      >
+        <span className="truncate pr-4">{selectedOption ? selectedOption.label : "Select..."}</span>
+        <ChevronDown size={14} className={`shrink-0 text-[var(--fg-muted)] transition-transform ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="absolute z-50 w-full mt-2 bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-2xl overflow-hidden"
+          >
+            <div className="max-h-60 overflow-y-auto overscroll-contain flex flex-col py-2 no-scrollbar">
+              {options.map((opt, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleSelect(opt.value)}
+                  className={`w-full text-left px-4 py-2.5 text-sm font-mono hover:bg-[var(--fg)]/5 transition-colors flex items-center justify-between ${String(value) === String(opt.value) ? "text-[var(--fg)] bg-[var(--fg)]/[0.02]" : "text-[var(--fg-muted)]"}`}
+                >
+                  <span className="truncate pr-4">{opt.label}</span>
+                  {String(value) === String(opt.value) && <Check size={14} className="shrink-0" />}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
