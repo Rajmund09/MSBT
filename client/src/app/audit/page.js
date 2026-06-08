@@ -94,7 +94,7 @@ export default function AuditLogs() {
       ) : (
         <div className="flex flex-col divide-y divide-[var(--border)]">
           {filtered.map((log, i) => {
-            const c = ACTION_COLORS[log.action] || "text-white/40 bg-white/5 border-white/10";
+            const c = ACTION_COLORS[log.action] || "text-[var(--fg-muted)] bg-[var(--fg)]/5 border-[var(--border)]";
             return (
               <motion.div
                 key={log.id}

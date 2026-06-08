@@ -115,7 +115,7 @@ function EntryForm({ onSubmit, loading }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <label className="font-mono text-xs uppercase tracking-widest text-white/40">Customer <span className="text-red-400">*</span></label>
+            <label className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">Customer <span className="text-red-400">*</span></label>
             <button
               type="button"
               onClick={() => setShowNewCustomer(!showNewCustomer)}
@@ -176,7 +176,7 @@ function EntryForm({ onSubmit, loading }) {
               key={t}
               type="button"
               onClick={() => setForm(p => ({ ...p, entryType: t }))}
-              className={`flex-1 h-11 rounded-xl text-xs font-mono uppercase tracking-widest border transition-all ${form.entryType === t ? TYPE_COLORS[t] : "border-white/[0.08] text-white/40 hover:text-white/60"}`}
+              className={`flex-1 h-11 rounded-xl text-xs font-mono uppercase tracking-widest border transition-all ${form.entryType === t ? TYPE_COLORS[t] : "border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)]"}`}
             >
               {t}
             </button>
@@ -198,10 +198,10 @@ function EntryForm({ onSubmit, loading }) {
         <motion.div
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08]"
+          className="flex items-center justify-between px-4 py-3 rounded-xl bg-[var(--fg)]/[0.04] border border-[var(--border)]"
         >
-          <span className="font-mono text-xs uppercase tracking-widest text-white/40">Total Amount</span>
-          <span className="font-mono text-lg text-white">{fmt(totalAmount)}</span>
+          <span className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">Total Amount</span>
+          <span className="font-mono text-lg text-[var(--fg)]">{fmt(totalAmount)}</span>
         </motion.div>
       )}
 
@@ -280,7 +280,7 @@ function ExportModal({ entries, onClose }) {
               key={t.id}
               type="button"
               onClick={() => setExportType(t.id)}
-              className={`flex-1 h-11 rounded-xl text-[10px] font-mono uppercase tracking-widest border transition-all ${exportType === t.id ? "bg-white/10 border-white/20 text-white" : "border-white/[0.08] text-white/40 hover:text-white/60"}`}
+              className={`flex-1 h-11 rounded-xl text-[10px] font-mono uppercase tracking-widest border transition-all ${exportType === t.id ? "bg-[var(--fg)]/10 border-[var(--fg)]/20 text-[var(--fg)]" : "border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)]"}`}
             >
               {t.label}
             </button>
@@ -318,7 +318,7 @@ function ExportModal({ entries, onClose }) {
               key={f}
               type="button"
               onClick={() => setFormat(f)}
-              className={`flex-1 h-11 rounded-xl text-xs font-mono uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${format === f ? "bg-green-500/10 border-green-500/30 text-green-400" : "border-white/[0.08] text-white/40 hover:text-white/60"}`}
+              className={`flex-1 h-11 rounded-xl text-xs font-mono uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${format === f ? "bg-green-500/10 border-green-500/30 text-green-500" : "border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)]"}`}
             >
               <Download size={14} /> {f}
             </button>

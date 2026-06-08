@@ -25,8 +25,8 @@ const fmtShort = (n) => {
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-xs font-mono">
-      <p className="text-white/40 mb-2">{label}</p>
+    <div className="bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-xs font-mono shadow-xl">
+      <p className="text-[var(--fg-muted)] mb-2">{label}</p>
       {payload.map((p, i) => (
         <p key={i} style={{ color: p.color }} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-current" />

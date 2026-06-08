@@ -131,7 +131,7 @@ function PaymentForm({ onSubmit, loading }) {
 const rowVariants = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
 function PaymentRow({ payment, onDelete, index }) {
-  const mode = MODE_CONFIG[payment.payment_mode] || { icon: null, color: "text-white/40 bg-white/5 border-white/10" };
+  const mode = MODE_CONFIG[payment.payment_mode] || { icon: null, color: "text-[var(--fg-muted)] bg-[var(--fg)]/5 border-[var(--border)]" };
 
   return (
     <motion.div
