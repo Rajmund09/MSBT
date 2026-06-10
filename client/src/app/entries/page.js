@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/index";
 import { AdaptiveActions, AdaptiveTooltip } from "@/components/ui/AdaptiveUI";
 import { exportToExcel, exportToCSV, formatEntriesForExport } from "@/utils/export";
+import { usePermission } from "@/hooks/usePermission";
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
@@ -75,13 +76,28 @@ function EntryForm({ onSubmit, loading }) {
   };
 
   useEffect(() => {
-    Promise.all([api.getCustomers(), api.getSeasons()])
-      .then(([c, s]) => {
-        setCustomers(c.filter(x => x.status === "active"));
-        setSeasons(s.filter(x => x.status !== "Archived"));
-      })
-      .catch(() => toast("Failed to load dropdowns", "error"));
+    api.getSeasons()
+      .then(s => setSeasons(s.filter(x => x.status !== "Archived")))
+      .catch(() => toast("Failed to load seasons", "error"));
   }, [toast]);
+
+  useEffect(() => {
+    if (!form.seasonId) {
+      setCustomers([]);
+      setForm(prev => ({ ...prev, customerId: "" }));
+      return;
+    }
+    api.getCustomers(form.seasonId)
+      .then(c => {
+        const activeCusts = c.filter(x => x.status === "active");
+        setCustomers(activeCusts);
+        if (form.customerId && !activeCusts.some(x => x.id === form.customerId)) {
+          setForm(prev => ({ ...prev, customerId: "" }));
+        }
+      })
+      .catch(() => toast("Failed to load customers for the selected season", "error"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.seasonId, toast]);
 
   const totalAmount = useMemo(() => {
     const r = parseFloat(form.rate) || 0;
@@ -338,7 +354,7 @@ function ExportModal({ entries, onClose }) {
 
 const rowVariants = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
-function EntryRow({ entry, onDelete, index }) {
+function EntryRow({ entry, onDelete, index, checkPerm }) {
   const typeColor = TYPE_COLORS[entry.entry_type] || "";
   return (
     <motion.div
@@ -372,7 +388,7 @@ function EntryRow({ entry, onDelete, index }) {
         <AdaptiveActions>
           <AdaptiveTooltip content="Delete Entry">
             <button
-              onClick={() => onDelete(entry)}
+              onClick={() => { if (checkPerm('entries', 'delete')) onDelete(entry); }}
               aria-label="Delete entry"
               className="w-9 h-9 rounded-lg flex items-center justify-center bg-red-500/5 hover:bg-red-500/15 active:bg-red-500/20 text-red-400/60 hover:text-red-400 transition-all"
             >
@@ -395,6 +411,7 @@ export default function Entries() {
   const [createOpen, setCreateOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const checkPerm = usePermission();
 
   const fetchEntries = useCallback(async () => {
     try {
@@ -479,7 +496,7 @@ export default function Entries() {
                 <Download size={13} /> Export Data
               </button>
             </div>
-            <AddButton onClick={() => setCreateOpen(true)}>
+            <AddButton onClick={() => { if (checkPerm('entries', 'create')) setCreateOpen(true); }}>
               <Plus size={14} />
               Add Entry
             </AddButton>
@@ -505,12 +522,12 @@ export default function Entries() {
           icon={<FileText size={48} />}
           title={search ? "No results found" : "No entries yet"}
           description={search ? "Try a different search" : "Add trip, hour or trade entries to begin"}
-          action={!search && <AddButton onClick={() => setCreateOpen(true)}><Plus size={14} /> Add Entry</AddButton>}
+          action={!search && <AddButton onClick={() => { if (checkPerm('entries', 'create')) setCreateOpen(true); }}><Plus size={14} /> Add Entry</AddButton>}
         />
       ) : (
         <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-3">
           {filtered.map((e, i) => (
-            <EntryRow key={e.id} entry={e} index={i} onDelete={setDeleteTarget} />
+            <EntryRow key={e.id} entry={e} index={i} onDelete={setDeleteTarget} checkPerm={checkPerm} />
           ))}
         </motion.div>
       )}

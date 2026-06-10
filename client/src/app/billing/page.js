@@ -27,10 +27,27 @@ export default function Billing() {
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
-    Promise.all([api.getCustomers(), api.getSeasons()])
-      .then(([c, s]) => { setCustomers(c); setSeasons(s); })
-      .catch(() => toast("Failed to load data", "error"));
+    api.getSeasons()
+      .then(s => setSeasons(s))
+      .catch(() => toast("Failed to load seasons", "error"));
   }, []);
+
+  useEffect(() => {
+    if (!selectedSeason) {
+      setCustomers([]);
+      setSelectedCustomer("");
+      return;
+    }
+    api.getCustomers(selectedSeason)
+      .then(c => {
+        setCustomers(c);
+        if (selectedCustomer && !c.some(cust => cust.id === selectedCustomer)) {
+          setSelectedCustomer("");
+        }
+      })
+      .catch(() => toast("Failed to load customers for the selected season", "error"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSeason, toast]);
 
   const loadBill = useCallback(async () => {
     if (!selectedCustomer || !selectedSeason) return;

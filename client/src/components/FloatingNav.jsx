@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { X, LogOut } from "lucide-react";
+import { X, LogOut, LayoutDashboard, Users, Calendar, ClipboardList, Wallet, BarChart2, Receipt, UserCircle } from "lucide-react";
 import Magnetic from "./Magnetic";
 import { useAuth } from "@/contexts/AuthContext";
 import { useInteraction } from "@/contexts/InteractionContext";
@@ -21,6 +21,20 @@ const NAV_LINKS = [
   { name: "Analytics", href: "/analytics" },
   { name: "Billing", href: "/billing" },
 ];
+
+const getIconForLink = (name) => {
+  switch (name) {
+    case "Dashboard": return LayoutDashboard;
+    case "Customers": return Users;
+    case "Staff": return UserCircle;
+    case "Seasons": return Calendar;
+    case "Entries": return ClipboardList;
+    case "Payments": return Wallet;
+    case "Analytics": return BarChart2;
+    case "Billing": return Receipt;
+    default: return LayoutDashboard;
+  }
+};
 
 const AnimatedLogo = () => {
   const letters = ["M", "S", "B", "T"];
@@ -67,13 +81,15 @@ const AnimatedLogo = () => {
 };
 
 const DesktopNav = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { user, logout } = useAuth();
   const router = useRouter();
-  const { enableMagneticButtons, hasHover } = useInteraction();
+  const { enableMagneticButtons, hasHover, isMenuStatic } = useInteraction();
+
+  const isOpen = isMenuStatic || isHovered;
 
   useEffect(() => setMounted(true), []);
 
@@ -90,8 +106,8 @@ const DesktopNav = () => {
     <motion.div
       className="fixed left-1/2 -translate-x-1/2 z-[9000] flex items-center justify-center h-[60px]"
       style={{ bottom: 'calc(2.5rem + env(safe-area-inset-bottom, 0px))' }}
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
@@ -143,7 +159,7 @@ const DesktopNav = () => {
                   <motion.div initial="initial" whileHover={hasHover ? "hover" : undefined}>
                     <Link
                       href={link.href}
-                      onClick={() => setIsOpen(false)}
+                      onClick={() => setIsHovered(false)}
                       className="relative px-2.5 py-2 lg:px-5 lg:py-2.5 rounded-full transition-colors flex items-center justify-center group"
                     >
                       <div
@@ -252,6 +268,7 @@ const MobileNav = () => {
   const [mounted, setMounted] = useState(false);
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { isMenuStatic } = useInteraction();
 
   useEffect(() => setMounted(true), []);
 
@@ -271,6 +288,31 @@ const MobileNav = () => {
     await logout();
     router.replace("/login");
   };
+
+  if (isMenuStatic) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 z-[9000] bg-white dark:bg-[#0a0a0a] border-t border-black/10 dark:border-white/10 overflow-x-auto no-scrollbar shadow-[0_-4px_20px_rgba(0,0,0,0.05)]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="flex items-center justify-start min-w-full px-2 py-2">
+          {NAV_LINKS.map((link) => {
+            const Icon = getIconForLink(link.name);
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.name}
+                href={link.href}
+                className={`flex flex-col items-center justify-center w-[76px] shrink-0 px-1 py-2 gap-1.5 transition-colors ${isActive ? 'text-[#0056b3] dark:text-white' : 'text-[#4b5563] dark:text-white/50'}`}
+              >
+                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                <span className="text-[11px] font-medium tracking-tight">
+                  {link.name}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -399,22 +441,13 @@ const MobileNav = () => {
 };
 
 export default function FloatingNav() {
-  const { deviceType } = useInteraction();
-
-  // On confirmed touch-only devices, always show mobile nav
-  // On desktop, always show desktop nav
-  // On hybrid (iPad/Surface), use md breakpoint as the decider
-  if (deviceType === "desktop") {
-    return <DesktopNav />;
-  }
-  if (deviceType === "touch") {
-    return <MobileNav />;
-  }
-  // Hybrid — use responsive breakpoint
+  // Use responsive breakpoints to decide which nav to show.
+  // This ensures that large touch devices (like iPads) get the desktop nav,
+  // preventing the mobile bottom bar from stretching awkwardly across large screens.
   return (
     <>
-      <div className="hidden md:block"><DesktopNav /></div>
-      <div className="md:hidden"><MobileNav /></div>
+      <div className="hidden md:block w-full"><DesktopNav /></div>
+      <div className="md:hidden w-full"><MobileNav /></div>
     </>
   );
 }

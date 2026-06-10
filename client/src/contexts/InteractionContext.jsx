@@ -23,6 +23,10 @@ const InteractionContext = createContext({
   enableHoverEffects: false,
   enableCursorSpotlight: false,
   enableHeavyAnimations: false,
+
+  // User preferences
+  isMenuStatic: false,
+  setIsMenuStatic: () => {},
 });
 
 export function InteractionProvider({ children }) {
@@ -40,7 +44,13 @@ export function InteractionProvider({ children }) {
     enableHoverEffects: false,
     enableCursorSpotlight: false,
     enableHeavyAnimations: false,
+    isMenuStatic: false,
   });
+
+  const setIsMenuStatic = useCallback((value) => {
+    setState(prev => ({ ...prev, isMenuStatic: value }));
+    localStorage.setItem("isMenuStatic", value);
+  }, []);
 
   useEffect(() => {
     // Read media queries
@@ -80,15 +90,21 @@ export function InteractionProvider({ children }) {
         enableHoverEffects: deviceType === "desktop" || deviceType === "hybrid",
         enableCursorSpotlight: deviceType === "desktop",
         enableHeavyAnimations: deviceType === "desktop",
+        isMenuStatic: false, // will be overridden by prev state
       };
     }
 
     const update = () => {
-      setState(computeState(hoverQuery, fineQuery, coarseQuery));
+      setState(prev => ({ ...computeState(hoverQuery, fineQuery, coarseQuery), isMenuStatic: prev.isMenuStatic }));
     };
 
     // Initial read
-    update();
+    const initialState = computeState(hoverQuery, fineQuery, coarseQuery);
+    const stored = localStorage.getItem("isMenuStatic");
+    if (stored !== null) {
+      initialState.isMenuStatic = stored === "true";
+    }
+    setState(initialState);
 
     // Listen for changes (e.g., user connects mouse to tablet)
     hoverQuery.addEventListener("change", update);
@@ -133,7 +149,7 @@ export function InteractionProvider({ children }) {
   }, []);
 
   return (
-    <InteractionContext.Provider value={state}>
+    <InteractionContext.Provider value={{ ...state, setIsMenuStatic }}>
       {children}
     </InteractionContext.Provider>
   );

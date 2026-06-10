@@ -57,7 +57,7 @@ const MODULES = [
     icon: <Shield size={16} />,
     color: "text-red-400",
     bg: "bg-red-400/10",
-    actions: ["create", "edit", "delete", "assign_permissions"],
+    actions: ["view", "create", "edit", "delete", "assign_permissions"],
   },
 ];
 

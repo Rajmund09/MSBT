@@ -49,7 +49,7 @@ export default function AccountDropdown() {
                 initial={{ opacity: 0, y: -10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                className="absolute top-12 right-0 w-64 bg-[#0f0f0f] border border-[var(--border)] rounded-2xl shadow-xl z-[8002] overflow-hidden"
+                className="absolute top-12 right-0 w-64 bg-white dark:bg-[#0f0f0f] border border-[var(--border)] rounded-2xl shadow-xl z-[8002] overflow-hidden"
               >
                 <div className="p-4 border-b border-[var(--border)]">
                   <p className="font-display text-[var(--fg)] truncate">{user.full_name || user.username}</p>
@@ -61,7 +61,7 @@ export default function AccountDropdown() {
                 <div className="p-2">
                   <button
                     onClick={() => { setOpen(false); window.location.href = '/account'; }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors text-sm"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors text-sm"
                   >
                     <Settings size={14} /> Account Settings
                   </button>

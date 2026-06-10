@@ -11,6 +11,7 @@ import {
   PageHeader, AddButton, EmptyState, Skeleton,
   FormField, Input, SubmitButton
 } from "@/components/ui/index";
+import { usePermission } from "@/hooks/usePermission";
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
@@ -150,6 +151,7 @@ export default function Seasons() {
   const [submitting, setSubmitting] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [statusTarget, setStatusTarget] = useState(null); // { season, newStatus }
+  const checkPerm = usePermission();
 
   const fetchSeasons = useCallback(async () => {
     try {
@@ -207,7 +209,7 @@ export default function Seasons() {
         title="Seasons"
         description={`${seasons.length} periods · Financial Calendar`}
         action={
-          <AddButton onClick={() => setCreateOpen(true)}>
+          <AddButton onClick={() => { if (checkPerm('seasons', 'create')) setCreateOpen(true); }}>
             <Plus size={14} />
             New Season
           </AddButton>
@@ -221,7 +223,7 @@ export default function Seasons() {
           icon={<CalendarDays size={48} />}
           title="No seasons yet"
           description="Create a season to start tracking entries and payments"
-          action={<AddButton onClick={() => setCreateOpen(true)}><Plus size={14} /> New Season</AddButton>}
+          action={<AddButton onClick={() => { if (checkPerm('seasons', 'create')) setCreateOpen(true); }}><Plus size={14} /> New Season</AddButton>}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -230,7 +232,12 @@ export default function Seasons() {
               key={s.id}
               season={s}
               index={i}
-              onStatusChange={(season, newStatus) => setStatusTarget({ season, newStatus })}
+              onStatusChange={(season, newStatus) => {
+                const actionMap = { Active: "edit", Closed: "edit", Archived: "archive" };
+                if (checkPerm('seasons', actionMap[newStatus])) {
+                  setStatusTarget({ season, newStatus });
+                }
+              }}
             />
           ))}
         </div>

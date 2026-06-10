@@ -6,11 +6,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/utils/api";
 import { useToast } from "@/components/ui/Toast";
 import { Camera } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useInteraction } from "@/contexts/InteractionContext";
 
 export default function AccountSettings() {
   const { user, refreshUser } = useAuth();
   const toast = useToast();
   const fileRef = useRef(null);
+  const { theme, setTheme } = useTheme();
+  const { isMenuStatic, setIsMenuStatic } = useInteraction();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -204,6 +211,52 @@ export default function AccountSettings() {
               Update
             </button>
           </form>
+        </div>
+
+        {/* Appearance Card */}
+        <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-[var(--border)] rounded-2xl p-6 sm:p-8 shadow-sm">
+          <div className="mb-8 border-b border-gray-100 dark:border-[var(--border)] pb-6">
+            <h2 className="font-display text-2xl text-[#1a2b4b] dark:text-[var(--fg)] mb-1">Appearance</h2>
+            <p className="text-sm text-gray-500 dark:text-[var(--fg-muted)]">Customize your UI preferences.</p>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-[var(--fg)]">Theme</h3>
+                <p className="text-sm text-gray-500 dark:text-[var(--fg-muted)]">Switch between light and dark modes.</p>
+              </div>
+              {mounted && (
+                <div className="flex bg-gray-100 dark:bg-[#0f0f0f] rounded-lg p-1 border border-gray-200 dark:border-[var(--border)]">
+                  <button 
+                    onClick={() => setTheme('light')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${theme === 'light' ? 'bg-white text-black shadow-sm' : 'text-gray-500'}`}
+                  >
+                    Light
+                  </button>
+                  <button 
+                    onClick={() => setTheme('dark')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ? 'bg-[#1a2b4b] text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}
+                  >
+                    Dark
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-[var(--fg)]">Static Menu Bar</h3>
+                <p className="text-sm text-gray-500 dark:text-[var(--fg-muted)]">Keep the navigation menu open at all times.</p>
+              </div>
+              <button
+                onClick={() => setIsMenuStatic(!isMenuStatic)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isMenuStatic ? 'bg-[#007AFF]' : 'bg-gray-300 dark:bg-gray-600'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isMenuStatic ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </motion.main>

@@ -162,7 +162,7 @@ export default function Dashboard() {
 
   const { metrics, today, activeSeason, topOutstandingCustomers } = data;
 
-  const displayName = user?.fullName === "Sri Mahalaxmi Behara" ? "Samprat Behera" : (user?.fullName || user?.username || "Samprat Behera");
+  const displayName = user?.full_name || user?.username || "ADMIN";
 
   return (
     <motion.main
@@ -201,28 +201,6 @@ export default function Dashboard() {
           </p>
         </motion.div>
         
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }} 
-          animate={{ opacity: 1, scale: 1 }} 
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="shrink-0"
-        >
-          <div className="relative group">
-            <select
-              value={selectedSeasonId}
-              onChange={(e) => setSelectedSeasonId(e.target.value)}
-              className="appearance-none bg-white dark:bg-[#111] border border-[var(--border)] text-[var(--fg)] text-xs font-mono uppercase tracking-widest px-4 py-2.5 pr-10 rounded-xl outline-none focus:ring-2 focus:ring-[var(--fg)]/20 shadow-sm cursor-pointer hover:shadow-md transition-all"
-            >
-              <option value="">All Seasons</option>
-              {seasons.map(s => (
-                <option key={s.id} value={s.id}>{s.name} ({s.status})</option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--fg-muted)] group-hover:text-[var(--fg)] transition-colors">
-              <CalendarDays size={14} />
-            </div>
-          </div>
-        </motion.div>
       </section>
 
       {/* Main Metrics */}

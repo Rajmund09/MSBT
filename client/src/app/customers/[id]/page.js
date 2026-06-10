@@ -97,6 +97,8 @@ export default function CustomerLedger() {
     );
   }
 
+  if (!customer) return null;
+
   return (
     <motion.main
       initial={{ opacity: 0 }}

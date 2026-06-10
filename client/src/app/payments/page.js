@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/index";
 import { AdaptiveActions, AdaptiveTooltip } from "@/components/ui/AdaptiveUI";
 import { exportToExcel, exportToCSV, formatPaymentsForExport } from "@/utils/export";
+import { usePermission } from "@/hooks/usePermission";
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
@@ -44,13 +45,28 @@ function PaymentForm({ onSubmit, loading }) {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    Promise.all([api.getCustomers(), api.getSeasons()])
-      .then(([c, s]) => {
-        setCustomers(c.filter(x => x.status === "active"));
-        setSeasons(s.filter(x => x.status !== "Archived"));
-      })
-      .catch(() => toast("Failed to load dropdowns", "error"));
+    api.getSeasons()
+      .then(s => setSeasons(s.filter(x => x.status !== "Archived")))
+      .catch(() => toast("Failed to load seasons", "error"));
   }, [toast]);
+
+  useEffect(() => {
+    if (!form.seasonId) {
+      setCustomers([]);
+      setForm(prev => ({ ...prev, customerId: "" }));
+      return;
+    }
+    api.getCustomers(form.seasonId)
+      .then(c => {
+        const activeCusts = c.filter(x => x.status === "active");
+        setCustomers(activeCusts);
+        if (form.customerId && !activeCusts.some(x => x.id === form.customerId)) {
+          setForm(prev => ({ ...prev, customerId: "" }));
+        }
+      })
+      .catch(() => toast("Failed to load customers for the selected season", "error"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.seasonId, toast]);
 
   const validate = () => {
     const e = {};
@@ -130,7 +146,7 @@ function PaymentForm({ onSubmit, loading }) {
 
 const rowVariants = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
-function PaymentRow({ payment, onDelete, index }) {
+function PaymentRow({ payment, onDelete, index, checkPerm }) {
   const mode = MODE_CONFIG[payment.payment_mode] || { icon: null, color: "text-[var(--fg-muted)] bg-[var(--fg)]/5 border-[var(--border)]" };
 
   return (
@@ -169,7 +185,7 @@ function PaymentRow({ payment, onDelete, index }) {
         <AdaptiveActions>
           <AdaptiveTooltip content="Delete Payment">
             <button
-              onClick={() => onDelete(payment)}
+              onClick={() => { if (checkPerm('payments', 'delete')) onDelete(payment); }}
               aria-label="Delete payment"
               className="w-9 h-9 rounded-lg flex items-center justify-center bg-red-500/5 hover:bg-red-500/15 active:bg-red-500/20 text-red-400/60 hover:text-red-400 transition-all"
             >
@@ -191,6 +207,7 @@ export default function Payments() {
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const checkPerm = usePermission();
 
   const fetchPayments = useCallback(async () => {
     try {
@@ -279,7 +296,7 @@ export default function Payments() {
                 <Download size={13} /> Excel
               </button>
             </div>
-            <AddButton onClick={() => setCreateOpen(true)}>
+            <AddButton onClick={() => { if (checkPerm('payments', 'create')) setCreateOpen(true); }}>
               <Plus size={14} />
               Record Payment
             </AddButton>
@@ -305,12 +322,12 @@ export default function Payments() {
           icon={<Wallet size={48} />}
           title={search ? "No results found" : "No payments recorded"}
           description={search ? "Try a different search" : "Record the first payment to start tracking collections"}
-          action={!search && <AddButton onClick={() => setCreateOpen(true)}><Plus size={14} /> Record Payment</AddButton>}
+          action={!search && <AddButton onClick={() => { if (checkPerm('payments', 'create')) setCreateOpen(true); }}><Plus size={14} /> Record Payment</AddButton>}
         />
       ) : (
         <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-3">
           {filtered.map((p, i) => (
-            <PaymentRow key={p.id} payment={p} index={i} onDelete={setDeleteTarget} />
+            <PaymentRow key={p.id} payment={p} index={i} onDelete={setDeleteTarget} checkPerm={checkPerm} />
           ))}
         </motion.div>
       )}

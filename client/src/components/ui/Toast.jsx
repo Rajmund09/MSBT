@@ -12,11 +12,17 @@ export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((message, type = "success") => {
-    const id = ++toastIdCounter;
-    setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4000);
+    setToasts(prev => {
+      // Deduplicate toasts with the exact same message
+      if (prev.some(t => t.message === message)) return prev;
+      
+      const id = ++toastIdCounter;
+      setTimeout(() => {
+        setToasts(p => p.filter(t => t.id !== id));
+      }, 4000);
+      
+      return [...prev, { id, message, type }];
+    });
   }, []);
 
   const removeToast = useCallback((id) => {
@@ -51,17 +57,35 @@ function Toast({ toast, onRemove }) {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, x: 60, scale: 0.95 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 60, scale: 0.9 }}
-      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-      className="pointer-events-auto flex items-center gap-3 pl-4 pr-3 py-3 rounded-2xl border border-white/10 bg-[#111]/90 backdrop-blur-xl text-white shadow-2xl min-w-[260px] max-w-[360px]"
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className={`pointer-events-auto flex items-start gap-3 p-4 rounded-2xl border shadow-2xl min-w-[280px] max-w-[380px] backdrop-blur-2xl relative overflow-hidden group
+        ${toast.type === "error" ? "bg-red-950/40 border-red-500/20 shadow-red-500/10 text-red-50" : 
+          toast.type === "warning" ? "bg-yellow-950/40 border-yellow-500/20 shadow-yellow-500/10 text-yellow-50" : 
+          "bg-green-950/40 border-green-500/20 shadow-green-500/10 text-green-50"}`}
     >
-      {ICONS[toast.type] || ICONS.success}
-      <span className="text-sm font-mono flex-1 leading-snug">{toast.message}</span>
+      <div className={`absolute inset-0 opacity-20 bg-gradient-to-br pointer-events-none ${
+        toast.type === "error" ? "from-red-500 to-transparent" :
+        toast.type === "warning" ? "from-yellow-500 to-transparent" :
+        "from-green-500 to-transparent"
+      }`} />
+      
+      <div className="relative z-10 shrink-0 mt-0.5">
+        {ICONS[toast.type] || ICONS.success}
+      </div>
+      
+      <div className="relative z-10 flex-1 flex flex-col gap-0.5 pr-2">
+        <span className="text-[10px] font-mono uppercase tracking-widest opacity-60">
+          {toast.type === "error" ? "Access Denied" : toast.type === "warning" ? "Notice" : "Success"}
+        </span>
+        <span className="text-sm font-medium leading-snug">{toast.message.replace(/^Access Denied:\s*/i, "")}</span>
+      </div>
+
       <button
         onClick={() => onRemove(toast.id)}
-        className="ml-1 opacity-40 hover:opacity-100 transition-opacity"
+        className="relative z-10 shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 transition-all text-white/50 hover:text-white border border-white/5 hover:border-white/10"
       >
         <X size={14} />
       </button>

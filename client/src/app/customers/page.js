@@ -15,6 +15,7 @@ import {
 import { AdaptiveActions, AdaptiveTooltip } from "@/components/ui/AdaptiveUI";
 import { exportToExcel, exportToCSV, formatCustomersForExport } from "@/utils/export";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermission } from "@/hooks/usePermission";
 
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -102,7 +103,7 @@ const rowVariants = {
   show: { opacity: 1, y: 0 },
 };
 
-function CustomerRow({ customer, onEdit, onDelete, index, canEdit }) {
+function CustomerRow({ customer, onEdit, onDelete, index, checkPerm }) {
   const outstanding = customer.outstanding || 0;
 
   return (
@@ -155,28 +156,24 @@ function CustomerRow({ customer, onEdit, onDelete, index, canEdit }) {
         </div>
 
         <AdaptiveActions>
-          {canEdit && (
             <AdaptiveTooltip content="Edit Customer">
               <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(customer); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (checkPerm('customers', 'edit')) onEdit(customer); }}
                 aria-label="Edit customer"
                 className="w-9 h-9 rounded-lg flex items-center justify-center bg-[var(--fg)]/5 hover:bg-[var(--fg)]/10 active:bg-[var(--fg)]/15 text-[var(--fg)]/50 hover:text-[var(--fg)] transition-all"
               >
                 <Edit2 size={14} />
               </button>
             </AdaptiveTooltip>
-          )}
-          {canEdit && (
             <AdaptiveTooltip content="Permanently Delete">
               <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(customer); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (checkPerm('customers', 'delete')) onDelete(customer); }}
                 aria-label="Delete customer"
                 className="w-9 h-9 rounded-lg flex items-center justify-center bg-red-500/5 hover:bg-red-500/15 active:bg-red-500/20 text-red-400/50 hover:text-red-400 transition-all"
               >
                 <Trash2 size={14} />
               </button>
             </AdaptiveTooltip>
-          )}
         </AdaptiveActions>
       </div>
       </motion.div>
@@ -199,8 +196,7 @@ export default function Customers() {
   const [showFilters, setShowFilters] = useState(false);
 
   const { hasPermission } = useAuth();
-  const canCreate = hasPermission('customers', 'create');
-  const canEdit = hasPermission('customers', 'edit');
+  const checkPerm = usePermission();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
@@ -342,12 +338,10 @@ export default function Customers() {
                 <Download size={13} /> Excel
               </button>
             </div>
-            {canCreate && (
-              <AddButton onClick={() => setCreateOpen(true)}>
-                <Plus size={14} />
-                Add Customer
-              </AddButton>
-            )}
+            <AddButton onClick={() => { if (checkPerm('customers', 'create')) setCreateOpen(true); }}>
+              <Plus size={14} />
+              Add Customer
+            </AddButton>
           </div>
         }
       />
@@ -421,7 +415,7 @@ export default function Customers() {
           icon={<Users size={48} />}
           title={search ? "No results found" : "No customers yet"}
           description={search ? "Try a different search term" : "Add your first customer to get started"}
-          action={(!search && canCreate) && <AddButton onClick={() => setCreateOpen(true)}><Plus size={14} /> Add Customer</AddButton>}
+          action={!search && <AddButton onClick={() => { if (checkPerm('customers', 'create')) setCreateOpen(true); }}><Plus size={14} /> Add Customer</AddButton>}
         />
       ) : (
         <motion.div
@@ -437,7 +431,7 @@ export default function Customers() {
               index={i}
               onEdit={setEditTarget}
               onDelete={setDeleteTarget}
-              canEdit={canEdit}
+              checkPerm={checkPerm}
             />
           ))}
         </motion.div>

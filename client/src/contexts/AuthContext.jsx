@@ -64,10 +64,36 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (username, password, remember = false) => {
     const data = await api.login(username, password, remember);
+    
     setToken(data.token, remember);
-    setStoredUser(data.user, remember);
-    setUser(data.user);
-    return data.user;
+    
+    try {
+      // Immediately fetch the full user profile (with profile_photo, created_at, etc.)
+      const fullData = await api.getMe();
+      const u = {
+        id: fullData.id,
+        username: fullData.username,
+        role: fullData.role,
+        full_name: fullData.full_name,
+        phone: fullData.phone,
+        permissions: fullData.permissions || {},
+        profile_photo: fullData.profile_photo,
+        created_at: fullData.created_at,
+        status: fullData.status
+      };
+      setStoredUser(u, remember);
+      setUser(u);
+      return u;
+    } catch (err) {
+      // Fallback if getMe fails for some reason
+      const fallbackUser = {
+        ...data.user,
+        full_name: data.user.full_name || data.user.fullName
+      };
+      setStoredUser(fallbackUser, remember);
+      setUser(fallbackUser);
+      return fallbackUser;
+    }
   }, []);
 
   const logout = useCallback(async () => {

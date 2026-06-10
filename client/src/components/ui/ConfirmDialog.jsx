@@ -12,14 +12,14 @@ export default function ConfirmDialog({ isOpen, onClose, onConfirm, title, messa
           <AlertTriangle size={24} className="text-red-400" />
         </div>
         <div>
-          <h3 className="font-display text-xl text-white mb-2">{title}</h3>
-          <p className="text-sm text-white/50 font-mono leading-relaxed">{message}</p>
+          <h3 className="font-display text-xl text-[var(--fg)] mb-2">{title}</h3>
+          <p className="text-sm text-[var(--fg-muted)] font-mono leading-relaxed">{message}</p>
         </div>
         <div className="flex gap-3 w-full">
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 h-11 rounded-xl border border-white/10 text-white/60 hover:text-white hover:border-white/20 transition-all text-sm font-mono uppercase tracking-widest"
+            className="flex-1 h-11 rounded-xl border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--fg)]/5 transition-all text-sm font-mono uppercase tracking-widest"
           >
             Cancel
           </button>

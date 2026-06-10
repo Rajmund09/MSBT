@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/index";
 import { AdaptiveActions, AdaptiveTooltip } from "@/components/ui/AdaptiveUI";
 import PermissionGrid from "@/components/staff/PermissionGrid";
+import { usePermission } from "@/hooks/usePermission";
 
 const ROLE_CONFIG = {
   Owner: { color: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20", icon: <Crown size={11} /> },
@@ -184,7 +185,7 @@ function StaffSlideOver({ isOpen, onClose, initial = null, onSubmit, loading, cu
   return mounted ? createPortal(content, document.body) : null;
 }
 
-function StaffRow({ u, currentUser, onEdit, onDelete, index }) {
+function StaffRow({ u, currentUser, onEdit, onDelete, index, checkPerm }) {
   const config = ROLE_CONFIG[u.role] || ROLE_CONFIG.Employee;
   const isSelf = u.id === currentUser?.id;
   const createdDate = new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -195,7 +196,7 @@ function StaffRow({ u, currentUser, onEdit, onDelete, index }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
       className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-[#111] shadow-sm border border-[var(--border)] hover:shadow-md transition-all cursor-pointer"
-      onClick={() => !isSelf && onEdit(u)}
+      onClick={() => { if (!isSelf && checkPerm('users', 'edit')) onEdit(u); }}
     >
       {/* Identity Col */}
       <div className="flex items-center gap-4 w-full sm:w-1/3">
@@ -236,7 +237,7 @@ function StaffRow({ u, currentUser, onEdit, onDelete, index }) {
           <AdaptiveActions>
             <AdaptiveTooltip content="Suspend Staff">
               <button 
-                onClick={(e) => { e.stopPropagation(); onDelete(u); }} 
+                onClick={(e) => { e.stopPropagation(); if (checkPerm('users', 'delete')) onDelete(u); }} 
                 aria-label="Suspend user" 
                 className="w-10 h-10 rounded-xl flex items-center justify-center border border-yellow-500/20 bg-yellow-500/5 hover:bg-yellow-500/15 text-yellow-500 transition-all shadow-sm"
               >
@@ -245,7 +246,7 @@ function StaffRow({ u, currentUser, onEdit, onDelete, index }) {
             </AdaptiveTooltip>
             <AdaptiveTooltip content="Permanently Delete">
               <button 
-                onClick={(e) => { e.stopPropagation(); u.onHardDelete && u.onHardDelete(u); }} 
+                onClick={(e) => { e.stopPropagation(); if (checkPerm('users', 'delete')) { u.onHardDelete && u.onHardDelete(u); } }} 
                 aria-label="Delete user" 
                 className="w-10 h-10 rounded-xl flex items-center justify-center border border-red-500/20 bg-red-500/5 hover:bg-red-500/15 text-red-500 transition-all shadow-sm"
               >
@@ -275,6 +276,7 @@ export default function StaffManagementPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [hardDeleteTarget, setHardDeleteTarget] = useState(null);
   const [hardDeleting, setHardDeleting] = useState(false);
+  const checkPerm = usePermission();
 
   const fetch = useCallback(async () => {
     try {
@@ -384,7 +386,9 @@ export default function StaffManagementPage() {
     return result;
   }, [users, search, filterRole]);
 
-  if (!["Owner", "Co-Owner"].includes(user?.role)) {
+  const hasStaffAccess = user?.role === 'Owner' || (user?.role === 'Co-Owner' && user?.permissions?.users?.includes('view'));
+
+  if (!hasStaffAccess) {
     return (
       <main className="container mx-auto px-4 sm:px-6 md:px-12 flex items-center justify-center min-h-[60vh]">
         <div className="text-center max-w-md">
@@ -409,7 +413,7 @@ export default function StaffManagementPage() {
       <PageHeader
         title="Staff Management"
         description={`${users.length} active team members`}
-        action={<AddButton onClick={openAdd}><Plus size={14} /> Add Staff</AddButton>}
+        action={<AddButton onClick={() => { if (checkPerm('users', 'create')) openAdd(); }}><Plus size={14} /> Add Staff</AddButton>}
       />
 
       {/* Advanced Filter Bar */}
@@ -446,11 +450,11 @@ export default function StaffManagementPage() {
       {loading ? (
         <div className="flex flex-col gap-3">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)}</div>
       ) : filtered.length === 0 ? (
-        <EmptyState icon={<Users size={48} />} title="No staff found" description="Try adjusting your search or filters." action={!search && <AddButton onClick={openAdd}><Plus size={14} /> Add Staff</AddButton>} />
+        <EmptyState icon={<Users size={48} />} title="No staff found" description="Try adjusting your search or filters." action={!search && <AddButton onClick={() => { if (checkPerm('users', 'create')) openAdd(); }}><Plus size={14} /> Add Staff</AddButton>} />
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map((u, i) => (
-            <StaffRow key={u.id} u={{...u, onHardDelete: setHardDeleteTarget}} currentUser={user} index={i} onEdit={openEdit} onDelete={setDeleteTarget} />
+            <StaffRow key={u.id} u={{...u, onHardDelete: setHardDeleteTarget}} currentUser={user} index={i} onEdit={openEdit} onDelete={setDeleteTarget} checkPerm={checkPerm} />
           ))}
         </div>
       )}
