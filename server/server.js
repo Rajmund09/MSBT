@@ -49,15 +49,24 @@ app.get('*', (req, res) => {
 });
 
 // Boot DB & Start Listening
-db.initialize().then(() => {
-  app.listen(PORT, () => {
-    console.log(`================================================`);
-    console.log(`🚀 MSBT Digital ERP is running on port ${PORT}`);
-    console.log(`📂 DB Engine: ${db.type.toUpperCase()}`);
-    console.log(`🔒 Security Mode: JWT + RBAC Enabled`);
-    console.log(`================================================`);
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  db.initialize().then(() => {
+    app.listen(PORT, () => {
+      console.log(`================================================`);
+      console.log(`🚀 MSBT Digital ERP is running on port ${PORT}`);
+      console.log(`📂 DB Engine: ${db.type.toUpperCase()}`);
+      console.log(`🔒 Security Mode: JWT + RBAC Enabled`);
+      console.log(`================================================`);
+    });
+  }).catch(err => {
+    console.error('❌ Failed to launch database adapter:', err);
+    process.exit(1);
   });
-}).catch(err => {
-  console.error('❌ Failed to launch database adapter:', err);
-  process.exit(1);
-});
+} else {
+  // In Vercel serverless environment, perform initialization immediately
+  db.initialize().catch(err => {
+    console.error('❌ Failed to launch database adapter in serverless:', err);
+  });
+}
+
+module.exports = app;

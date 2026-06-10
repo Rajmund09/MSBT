@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg');
 
 // Determine database type based on Environment Variables
 // By default, fallback to 'sqlite' for zero-config developer onboarding
@@ -8,6 +9,26 @@ const DB_TYPE = process.env.DB_TYPE || 'sqlite';
 const SQLite_DB_PATH = process.env.SQLITE_DB_PATH || path.join(__dirname, '../../database/msbt.db');
 
 let dbInstance = null;
+
+if (DB_TYPE === 'postgres') {
+  console.log('PostgreSQL Selected. Instantiating connection pool...');
+  dbInstance = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+}
+
+// Helper to translate SQLite query syntax (e.g. ? placeholders, strftime) to PostgreSQL compatibility
+const translateQuery = (sql) => {
+  if (DB_TYPE !== 'postgres') return sql;
+  
+  let counter = 1;
+  // Replace ? with $1, $2, ...
+  let translated = sql.replace(/\?/g, () => `$${counter++}`);
+  // Replace SQLite strftime('%Y-%m', date) with PostgreSQL TO_CHAR(date, 'YYYY-MM')
+  translated = translated.replace(/strftime\((['"]%Y-%m['"])\s*,\s*([^)]+)\)/gi, "TO_CHAR($2, 'YYYY-MM')");
+  return translated;
+};
 
 const dbAdapter = {
   type: DB_TYPE,
@@ -98,10 +119,14 @@ const dbAdapter = {
         });
       });
     } else if (DB_TYPE === 'postgres') {
-      // PostgreSQL connection setup (production mode)
-      console.log('PostgreSQL Selected. Driver dependencies required for production.');
-      // Placeholder connection validation - will connect in production environment
-      resolve();
+      try {
+        // Test query
+        await dbInstance.query('SELECT NOW()');
+        console.log('✅ Connected to PostgreSQL database successfully.');
+      } catch (err) {
+        console.error('❌ PostgreSQL connection test failed:', err);
+        throw err;
+      }
     }
   },
 
@@ -114,8 +139,10 @@ const dbAdapter = {
           resolve(rows);
         });
       } else {
-        // Postgres query implementation
-        reject(new Error('PostgreSQL driver not initiated in dev mode'));
+        const pgSQL = translateQuery(sql);
+        dbInstance.query(pgSQL, params)
+          .then(res => resolve(res.rows))
+          .catch(err => reject(err));
       }
     });
   },
@@ -128,7 +155,10 @@ const dbAdapter = {
           resolve(row);
         });
       } else {
-        reject(new Error('PostgreSQL driver not initiated in dev mode'));
+        const pgSQL = translateQuery(sql);
+        dbInstance.query(pgSQL, params)
+          .then(res => resolve(res.rows[0] || null))
+          .catch(err => reject(err));
       }
     });
   },
@@ -141,7 +171,10 @@ const dbAdapter = {
           resolve({ id: this.lastID, changes: this.changes });
         });
       } else {
-        reject(new Error('PostgreSQL driver not initiated in dev mode'));
+        const pgSQL = translateQuery(sql);
+        dbInstance.query(pgSQL, params)
+          .then(res => resolve({ id: null, changes: res.rowCount }))
+          .catch(err => reject(err));
       }
     });
   }
