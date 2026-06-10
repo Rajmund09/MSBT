@@ -11,7 +11,7 @@ import { InteractionProvider, useInteraction } from "@/contexts/InteractionConte
 import Loader from "./Loader";
 import FloatingNav from "./FloatingNav";
 import TopLogo from "./TopLogo";
-import GlobalSearch from "./GlobalSearch";
+
 import AccountDropdown from "./AccountDropdown";
 import dynamic from "next/dynamic";
 
@@ -67,16 +67,16 @@ function AppShell({ children }) {
         <>
           <TopLogo />
           <FloatingNav />
-          <GlobalSearch />
+
           <AccountDropdown />
-          <AnimatePresence mode="wait" initial={true}>
+          <AnimatePresence mode="popLayout" initial={true}>
             <motion.div
               key={pathname}
-              initial={{ opacity: 0, scale: 0.98, filter: "blur(10px)" }}
-              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, scale: 1.02, filter: "blur(10px)" }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="min-h-screen flex flex-col"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
+              className="min-h-screen flex flex-col w-full"
               style={{
                 paddingTop: 'clamp(5rem, 10vw, 8rem)',
                 paddingBottom: 'calc(clamp(5.5rem, 10vw, 8rem) + env(safe-area-inset-bottom, 0px))',

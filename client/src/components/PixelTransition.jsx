@@ -30,7 +30,7 @@ export default function PixelTransition() {
     
     const startTime = startTimeRef.current;
     
-    const duration = 1200; // 1.2 seconds for a smoother, more cinematic wipe
+    const duration = 1000; // 1.0 seconds for a smoother, faster wipe
     
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -62,7 +62,39 @@ export default function PixelTransition() {
           fill: `rgba(255, 255, 255, ${Math.random() * 0.1 + 0.05})`, // subtle white tint
           highlight: `rgba(255, 255, 255, ${Math.random() * 0.4 + 0.2})`, // top/left highlight
           shadow: `rgba(0, 0, 0, ${Math.random() * 0.3 + 0.1})`, // bottom/right shadow
+          isDrawn: false, // track state to avoid redundant drawing
         });
+      }
+    }
+
+    // Set context properties once
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const drawCell = (cell) => {
+      ctx.fillStyle = cell.fill;
+      ctx.fillRect(cell.x, cell.y, blockSize, blockSize);
+      
+      ctx.fillStyle = cell.highlight;
+      ctx.fillRect(cell.x, cell.y, blockSize, 1);
+      ctx.fillRect(cell.x, cell.y, 1, blockSize);
+      
+      ctx.fillStyle = cell.shadow;
+      ctx.fillRect(cell.x, cell.y + blockSize - 1, blockSize, 1);
+      ctx.fillRect(cell.x + blockSize - 1, cell.y, 1, blockSize);
+      
+      if (!cell.isSolid) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+        ctx.fillText(cell.char, cell.x + blockSize / 2, cell.y + blockSize / 2 + 1);
+      }
+    };
+
+    if (isPresent) {
+      // If entering, start with all blocks fully drawn
+      for (let i = 0; i < grid.length; i++) {
+        drawCell(grid[i]);
+        grid[i].isDrawn = true;
       }
     }
 
@@ -72,47 +104,20 @@ export default function PixelTransition() {
       
       const adjustedProgress = progress * 1.3; // scale up to ensure noise clears
 
-      ctx.clearRect(0, 0, width, height);
-      
-      ctx.font = "bold 9px monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
       for (let i = 0; i < grid.length; i++) {
         const cell = grid[i];
         
-        let shouldDraw = false;
-        
         if (!isPresent) {
           // Exiting page: blocks appear
-          shouldDraw = adjustedProgress > cell.threshold;
+          if (!cell.isDrawn && adjustedProgress > cell.threshold) {
+            drawCell(cell);
+            cell.isDrawn = true;
+          }
         } else {
           // Entering new page: blocks disappear
-          shouldDraw = adjustedProgress < cell.threshold;
-        }
-
-        if (shouldDraw) {
-          // Glass base fill
-          ctx.fillStyle = cell.fill;
-          ctx.fillRect(cell.x, cell.y, blockSize, blockSize);
-          
-          // Top highlight line (simulates 3D bevel)
-          ctx.fillStyle = cell.highlight;
-          ctx.fillRect(cell.x, cell.y, blockSize, 1);
-          
-          // Left highlight line
-          ctx.fillRect(cell.x, cell.y, 1, blockSize);
-          
-          // Bottom shadow line (simulates depth)
-          ctx.fillStyle = cell.shadow;
-          ctx.fillRect(cell.x, cell.y + blockSize - 1, blockSize, 1);
-          
-          // Right shadow line
-          ctx.fillRect(cell.x + blockSize - 1, cell.y, 1, blockSize);
-          
-          if (!cell.isSolid) {
-            ctx.fillStyle = "rgba(255, 255, 255, 0.85)"; // Frosted white text
-            ctx.fillText(cell.char, cell.x + blockSize / 2, cell.y + blockSize / 2 + 1);
+          if (cell.isDrawn && adjustedProgress > cell.threshold) {
+            ctx.clearRect(cell.x, cell.y, blockSize, blockSize);
+            cell.isDrawn = false;
           }
         }
       }
