@@ -8,7 +8,7 @@ export default function TransitionProvider({ children }) {
   const pathname = usePathname();
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="popLayout">
       <motion.div key={pathname} className="w-full">
         {/* The exit animation logic is driven entirely by the PixelTransition component overlaying the screen. */}
         <PixelTransition />

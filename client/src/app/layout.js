@@ -37,7 +37,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${dmMono.variable} ${anton.variable} antialiased`}>
-      <body className="min-h-screen flex flex-col selection:bg-white selection:text-black">
+      <body className="min-h-screen flex flex-col selection:bg-white selection:text-black overflow-x-hidden">
         <Providers>
           <TransitionProvider>
             {children}
