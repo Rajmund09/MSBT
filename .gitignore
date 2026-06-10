@@ -1,6 +1,19 @@
+# Dependencies
 node_modules/
-server/
-database/
-client-gsap-backup/
 client/node_modules/
+server/node_modules/
+
+# Next.js build output
 client/.next/
+
+# Local Environment files (secrets)
+.env
+.env*.local
+server/.env
+client/.env.local
+
+# Local SQLite databases (data should not be in git)
+database/*.db
+
+# Backups
+client-gsap-backup/
