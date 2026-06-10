@@ -66,7 +66,8 @@ npm run dev
 ---
 
 ## ✨ Recent Features & Enhancements
-- **Advanced UI/UX**: Custom cursors, pixel transitions, and floating navigation for a fluid, modern, app-like feel.
+- **Advanced UI/UX**: Custom cursors, floating navigation, and hardware-accelerated page transitions for a fluid, app-like feel.
+- **Cinematic Pixel Wipes**: Highly optimized canvas-based pixel wipe animations engineered to run at a flawless 60fps without layout shifts or double scrollbars.
 - **Global Search**: Instantly find customers, entries, and records across the entire platform.
 - **Analytics & Billing**: Dedicated modules for deep financial insights and streamlined invoice management.
 - **Authentication & User Management**: Secure login flow, AuthContext for robust session state management, and user administration pages.
