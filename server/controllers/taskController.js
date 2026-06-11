@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { handleControllerError } = require('../utils/errorHandler');
 
 // Helper to generate a random ID
 const genId = (prefix = 'id') => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -29,8 +30,7 @@ exports.createTask = async (req, res) => {
 
     res.status(201).json({ id, title, description, due_date, due_time, assigned_to, customer_id, status: 'pending' });
   } catch (err) {
-    console.error('Create task error:', err);
-    res.status(500).json({ error: 'Failed to create task' });
+    handleControllerError(req, res, err, 'Create Task');
   }
 };
 
@@ -66,8 +66,7 @@ exports.updateTask = async (req, res) => {
 
     res.json({ id, title, description, due_date, due_time, assigned_to, customer_id, status });
   } catch (err) {
-    console.error('Update task error:', err);
-    res.status(500).json({ error: 'Failed to update task' });
+    handleControllerError(req, res, err, 'Update Task');
   }
 };
 
@@ -93,8 +92,7 @@ exports.deleteTask = async (req, res) => {
 
     res.json({ success: true, message: 'Task deleted successfully' });
   } catch (err) {
-    console.error('Delete task error:', err);
-    res.status(500).json({ error: 'Failed to delete task' });
+    handleControllerError(req, res, err, 'Delete Task');
   }
 };
 
@@ -146,7 +144,6 @@ exports.getCalendarEvents = async (req, res) => {
       entries
     });
   } catch (err) {
-    console.error('Get calendar events error:', err);
-    res.status(500).json({ error: 'Failed to fetch calendar events' });
+    handleControllerError(req, res, err, 'Get calendar events');
   }
 };

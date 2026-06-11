@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { handleControllerError } = require('../utils/errorHandler');
 
 const genId = (prefix = 'id') => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -25,8 +26,7 @@ exports.createSeason = async (req, res) => {
 
     res.status(201).json({ id, name, startDate, endDate, status: 'Active' });
   } catch (err) {
-    console.error('Create season error:', err);
-    res.status(500).json({ error: 'Failed to create season' });
+    handleControllerError(req, res, err, 'Create season');
   }
 };
 
@@ -49,8 +49,7 @@ exports.getAllSeasons = async (req, res) => {
 
     res.json(detailedSeasons);
   } catch (err) {
-    console.error('Get seasons error:', err);
-    res.status(500).json({ error: 'Failed to fetch seasons' });
+    handleControllerError(req, res, err, 'Fetch seasons');
   }
 };
 
@@ -83,7 +82,6 @@ exports.updateSeasonStatus = async (req, res) => {
 
     res.json({ id, name: existing.name, status, endDate: finalEndDate });
   } catch (err) {
-    console.error('Update season status error:', err);
-    res.status(500).json({ error: 'Failed to update season status' });
+    handleControllerError(req, res, err, 'Update season status');
   }
 };

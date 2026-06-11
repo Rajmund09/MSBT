@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { handleControllerError } = require('../utils/errorHandler');
 
 // Helper to generate a random ID
 const genId = (prefix = 'id') => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -24,8 +25,7 @@ exports.createCustomer = async (req, res) => {
 
     res.status(201).json({ id, name, phone, village, address, notes, status: 'active' });
   } catch (err) {
-    console.error('Create customer error:', err);
-    res.status(500).json({ error: 'Failed to create customer record' });
+    handleControllerError(req, res, err, 'Create customer record');
   }
 };
 
@@ -96,8 +96,7 @@ exports.getAllCustomers = async (req, res) => {
     // let's return all customers.
     res.json(detailedCustomers);
   } catch (err) {
-    console.error('Get all customers error:', err);
-    res.status(500).json({ error: 'Failed to fetch customer index' });
+    handleControllerError(req, res, err, 'Fetch customer index');
   }
 };
 
@@ -170,8 +169,7 @@ exports.getCustomerById = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Get customer details error:', err);
-    res.status(500).json({ error: 'Failed to retrieve customer ledger profiles' });
+    handleControllerError(req, res, err, 'Retrieve customer ledger profiles');
   }
 };
 
@@ -202,8 +200,7 @@ exports.updateCustomer = async (req, res) => {
 
     res.json({ id, name, phone, village, address, notes, status });
   } catch (err) {
-    console.error('Update customer error:', err);
-    res.status(500).json({ error: 'Failed to update customer details' });
+    handleControllerError(req, res, err, 'Update customer details');
   }
 };
 
@@ -229,7 +226,6 @@ exports.deleteCustomer = async (req, res) => {
 
     res.json({ success: true, message: 'Customer permanently deleted' });
   } catch (err) {
-    console.error('Delete customer error:', err);
-    res.status(500).json({ error: 'Failed to permanently delete customer' });
+    handleControllerError(req, res, err, 'Permanently delete customer');
   }
 };

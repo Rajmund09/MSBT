@@ -114,7 +114,36 @@ const dbAdapter = {
                     dbInstance.run("CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assigned_to)", (err) => {
                       if (err) return reject(err);
                       console.log('✅ Tasks database table verified/created.');
-                      resolve();
+                      
+                      // Verify SQLite columns in 'users'
+                      dbInstance.all("PRAGMA table_info(users)", (err, columnsInfo) => {
+                        if (err) return reject(err);
+                        const columns = columnsInfo.map(c => c.name.toLowerCase());
+                        
+                        const verifyCols = [];
+                        if (!columns.includes('permissions')) {
+                          console.log('⚠️ Column "permissions" missing in SQLite users table. Adding it...');
+                          verifyCols.push(new Promise((resCol, rejCol) => {
+                            dbInstance.run('ALTER TABLE users ADD COLUMN permissions TEXT;', (colErr) => {
+                              if (colErr) rejCol(colErr);
+                              else resCol();
+                            });
+                          }));
+                        }
+                        if (!columns.includes('profile_photo')) {
+                          console.log('⚠️ Column "profile_photo" missing in SQLite users table. Adding it...');
+                          verifyCols.push(new Promise((resCol, rejCol) => {
+                            dbInstance.run('ALTER TABLE users ADD COLUMN profile_photo TEXT;', (colErr) => {
+                              if (colErr) rejCol(colErr);
+                              else resCol();
+                            });
+                          }));
+                        }
+                        
+                        Promise.all(verifyCols)
+                          .then(() => resolve())
+                          .catch(colErr => reject(colErr));
+                      });
                     });
                   });
                 });
@@ -130,8 +159,51 @@ const dbAdapter = {
         // Test query
         await dbInstance.query('SELECT NOW()');
         console.log('✅ Connected to PostgreSQL database successfully.');
+
+        // Verify/Create schema tables
+        console.log('🔍 Running database schema verification...');
+        const requiredTables = ['users', 'seasons', 'customers', 'entries', 'payments', 'invoices', 'audit_logs', 'tasks'];
+        const tableCheck = await dbInstance.query(
+          "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+        );
+        const existingTables = tableCheck.rows.map(r => r.table_name.toLowerCase());
+        
+        let missingTableFound = false;
+        for (const table of requiredTables) {
+          if (!existingTables.includes(table)) {
+            console.warn(`⚠️ Database schema is missing table: "${table}"`);
+            missingTableFound = true;
+          }
+        }
+        
+        if (missingTableFound) {
+          console.log('🏗️ Applying database schema to create missing tables...');
+          const schemaPath = path.join(__dirname, '../../database/schema.sql');
+          const schemaSQL = fs.readFileSync(schemaPath, 'utf8');
+          await dbInstance.query(schemaSQL);
+          console.log('✅ Production PostgreSQL Schema verified/applied.');
+        } else {
+          console.log('✅ All required database tables exist.');
+        }
+
+        // Verify required columns in 'users' table (permissions and profile_photo)
+        const colCheck = await dbInstance.query(
+          "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'users'"
+        );
+        const columns = colCheck.rows.map(r => r.column_name.toLowerCase());
+        
+        if (!columns.includes('permissions')) {
+          console.warn('⚠️ Column "permissions" is missing in users table. Altering table...');
+          await dbInstance.query('ALTER TABLE users ADD COLUMN permissions TEXT;');
+          console.log('✅ Column "permissions" added to users table.');
+        }
+        if (!columns.includes('profile_photo')) {
+          console.warn('⚠️ Column "profile_photo" is missing in users table. Altering table...');
+          await dbInstance.query('ALTER TABLE users ADD COLUMN profile_photo TEXT;');
+          console.log('✅ Column "profile_photo" added to users table.');
+        }
       } catch (err) {
-        console.error('❌ PostgreSQL connection test failed:', err);
+        console.error('❌ PostgreSQL connection test or schema verification failed:', err);
         throw err;
       }
     }

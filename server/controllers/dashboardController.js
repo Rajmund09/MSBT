@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { handleControllerError } = require('../utils/errorHandler');
 
 exports.getDashboardSummary = async (req, res) => {
   const { seasonId } = req.query;
@@ -89,8 +90,7 @@ exports.getDashboardSummary = async (req, res) => {
       recentActivity,
     });
   } catch (err) {
-    console.error('Dashboard error:', err);
-    res.status(500).json({ error: 'Failed to aggregate dashboard analytics' });
+    handleControllerError(req, res, err, 'Aggregate dashboard summary');
   }
 };
 
@@ -106,8 +106,7 @@ exports.getAuditLogs = async (req, res) => {
     );
     res.json(logs);
   } catch (err) {
-    console.error('Audit logs error:', err);
-    res.status(500).json({ error: 'Failed to retrieve audit logs' });
+    handleControllerError(req, res, err, 'Retrieve audit logs');
   }
 };
 
@@ -159,7 +158,6 @@ exports.getAnalytics = async (req, res) => {
 
     res.json({ revenueByMonth, collectionsByMonth, byType, topCustomers, seasonStats });
   } catch (err) {
-    console.error('Analytics error:', err);
-    res.status(500).json({ error: 'Failed to generate analytics' });
+    handleControllerError(req, res, err, 'Generate dashboard analytics');
   }
 };

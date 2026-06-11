@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const db = require('./config/db');
@@ -45,7 +46,16 @@ app.get('/api/health', (req, res) => {
 
 // Serve frontend routing for SPA client (fallback for client routing)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  const filePath = path.join(__dirname, '../client/dist/index.html');
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.json({
+      status: 'online',
+      system: 'MSBT Enterprise ERP API',
+      message: 'MSBT Backend API is online. Client static assets are not packaged inside this instance.'
+    });
+  }
 });
 
 // Boot DB & Start Listening

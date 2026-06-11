@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { JWT_SECRET } = require('../middleware/auth');
+const { handleControllerError } = require('../utils/errorHandler');
 
 const genId = (prefix = 'id') => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -39,8 +40,7 @@ exports.login = async (req, res) => {
       user: { id: user.id, username: user.username, role: user.role, full_name: user.full_name, phone: user.phone, permissions: perms }
     });
   } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ error: 'Server error during login' });
+    handleControllerError(req, res, err, 'User Login');
   }
 };
 
@@ -52,7 +52,7 @@ exports.logout = async (req, res) => {
     );
     res.json({ message: 'Logged out successfully' });
   } catch (err) {
-    res.status(500).json({ error: 'Logout error' });
+    handleControllerError(req, res, err, 'User Logout');
   }
 };
 
@@ -68,7 +68,7 @@ exports.getCurrentUser = async (req, res) => {
     }
     res.json(user);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to retrieve current user' });
+    handleControllerError(req, res, err, 'Retrieve current user profile');
   }
 };
 
@@ -84,7 +84,7 @@ exports.getAllUsers = async (req, res) => {
     });
     res.json(users);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch users' });
+    handleControllerError(req, res, err, 'Fetch staff directory');
   }
 };
 
@@ -118,8 +118,7 @@ exports.registerUser = async (req, res) => {
 
     res.status(201).json({ id, username, role, full_name: fullName, phone, status: 'active', permissions });
   } catch (err) {
-    console.error('Register error:', err);
-    res.status(500).json({ error: 'Failed to create user' });
+    handleControllerError(req, res, err, 'Register new staff member');
   }
 };
 
@@ -149,7 +148,7 @@ exports.updateUser = async (req, res) => {
 
     res.json({ id, username: user.username, role: role || user.role, full_name: fullName || user.full_name, status: status || user.status, permissions: permissions || JSON.parse(user.permissions || "{}") });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update user' });
+    handleControllerError(req, res, err, 'Update staff details');
   }
 };
 
@@ -171,7 +170,7 @@ exports.deleteUser = async (req, res) => {
 
     res.json({ message: 'User suspended', id });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to delete user' });
+    handleControllerError(req, res, err, 'Suspend staff account');
   }
 };
 
@@ -194,7 +193,7 @@ exports.hardDeleteUser = async (req, res) => {
 
     res.json({ message: 'User permanently deleted', id });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to permanently delete user' });
+    handleControllerError(req, res, err, 'Permanently delete staff account');
   }
 };
 
@@ -223,7 +222,6 @@ exports.updateProfile = async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error('Update profile error:', err);
-    res.status(500).json({ error: 'Failed to update profile' });
+    handleControllerError(req, res, err, 'Update user profile settings');
   }
 };

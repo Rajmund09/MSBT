@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { handleControllerError } = require('../utils/errorHandler');
 
 const genId = (prefix = 'id') => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -57,8 +58,7 @@ exports.createPayment = async (req, res) => {
       createdBy: req.user.id
     });
   } catch (err) {
-    console.error('Create payment error:', err);
-    res.status(500).json({ error: 'Failed to record payment' });
+    handleControllerError(req, res, err, 'Record payment transaction');
   }
 };
 
@@ -84,8 +84,7 @@ exports.getAllPayments = async (req, res) => {
     const payments = await db.query(query, params);
     res.json(payments);
   } catch (err) {
-    console.error('Get payments error:', err);
-    res.status(500).json({ error: 'Failed to fetch payments ledger' });
+    handleControllerError(req, res, err, 'Fetch payments ledger');
   }
 };
 
@@ -121,7 +120,6 @@ exports.deletePayment = async (req, res) => {
 
     res.json({ message: 'Payment successfully deleted', id });
   } catch (err) {
-    console.error('Delete payment error:', err);
-    res.status(500).json({ error: 'Failed to delete payment transaction' });
+    handleControllerError(req, res, err, 'Delete payment transaction');
   }
 };

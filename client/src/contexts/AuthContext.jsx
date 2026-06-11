@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
           profile_photo: data.profile_photo,
         };
         setUser(u);
-        setStoredUser(u, !!localStorage.getItem("token"));
+        setStoredUser(u, !!localStorage.getItem("msbt_auth_token"));
       })
       .catch(() => {
         clearSession();
@@ -55,7 +55,7 @@ export function AuthProvider({ children }) {
         profile_photo: data.profile_photo,
       };
       setUser(u);
-      setStoredUser(u, !!localStorage.getItem("token"));
+      setStoredUser(u, !!localStorage.getItem("msbt_auth_token"));
       return u;
     } catch (err) {
       console.error("Failed to refresh user:", err);

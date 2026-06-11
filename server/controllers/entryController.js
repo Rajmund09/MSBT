@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { handleControllerError } = require('../utils/errorHandler');
 
 const genId = (prefix = 'id') => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -73,8 +74,7 @@ exports.createEntry = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Create entry error:', err);
-    res.status(500).json({ error: 'Failed to record entry log' });
+    handleControllerError(req, res, err, 'Record entry log');
   }
 };
 
@@ -100,8 +100,7 @@ exports.getAllEntries = async (req, res) => {
     const entries = await db.query(query, params);
     res.json(entries);
   } catch (err) {
-    console.error('Get entries error:', err);
-    res.status(500).json({ error: 'Failed to fetch entries log' });
+    handleControllerError(req, res, err, 'Fetch entries log');
   }
 };
 
@@ -137,7 +136,6 @@ exports.deleteEntry = async (req, res) => {
 
     res.json({ message: 'Entry successfully deleted', id });
   } catch (err) {
-    console.error('Delete entry error:', err);
-    res.status(500).json({ error: 'Failed to delete entry log' });
+    handleControllerError(req, res, err, 'Delete entry log');
   }
 };
