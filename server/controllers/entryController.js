@@ -17,7 +17,10 @@ exports.createEntry = async (req, res) => {
   const id = genId('entry');
   const numericRate = parseFloat(rate);
   const numericQuantity = parseFloat(quantity);
-  const totalAmount = numericRate * numericQuantity;
+  let totalAmount = numericRate * numericQuantity;
+  if (entryType === 'Hour') {
+    totalAmount = numericRate * numericQuantity * 60;
+  }
 
   try {
     // Check if season is active or closed

@@ -6,15 +6,15 @@ const genId = (prefix = 'id') => `${prefix}-${Date.now()}-${Math.random().toStri
 
 exports.createCustomer = async (req, res) => {
   const { name, phone, village, address, notes } = req.body;
-  if (!name || !phone || !village) {
-    return res.status(400).json({ error: 'Name, phone and village are required' });
+  if (!name || !village) {
+    return res.status(400).json({ error: 'Name and village are required' });
   }
 
   const id = genId('cust');
   try {
     await db.run(
       'INSERT INTO customers (id, name, phone, village, address, notes, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [id, name, phone, village, address || '', notes || '', 'active']
+      [id, name, phone || '', village, address || '', notes || '', 'active']
     );
 
     // Audit log
@@ -166,8 +166,8 @@ exports.updateCustomer = async (req, res) => {
   const { id } = req.params;
   const { name, phone, village, address, notes, status } = req.body;
 
-  if (!name || !phone || !village) {
-    return res.status(400).json({ error: 'Name, phone and village are required' });
+  if (!name || !village) {
+    return res.status(400).json({ error: 'Name and village are required' });
   }
 
   try {
@@ -178,7 +178,7 @@ exports.updateCustomer = async (req, res) => {
 
     await db.run(
       'UPDATE customers SET name = ?, phone = ?, village = ?, address = ?, notes = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [name, phone, village, address || '', notes || '', status || 'active', id]
+      [name, phone || '', village, address || '', notes || '', status || 'active', id]
     );
 
     // Audit log

@@ -47,7 +47,6 @@ function CustomerForm({ initial = {}, onSubmit, loading }) {
   const validate = () => {
     const e = {};
     if (!form.name.trim()) e.name = "Name is required";
-    if (!form.phone.trim()) e.phone = "Phone is required";
     if (!form.village.trim()) e.village = "Village is required";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -66,7 +65,7 @@ function CustomerForm({ initial = {}, onSubmit, loading }) {
         <Input placeholder="e.g. Niranjan Swain" value={form.name} onChange={set("name")} />
       </FormField>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <FormField label="Phone" error={errors.phone} required>
+        <FormField label="Phone" error={errors.phone}>
           <Input placeholder="+91 94380 12345" value={form.phone} onChange={set("phone")} />
         </FormField>
         <FormField label="Village / Town" error={errors.village} required>

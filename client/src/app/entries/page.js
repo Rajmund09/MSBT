@@ -56,8 +56,8 @@ function EntryForm({ onSubmit, loading }) {
 
   const handleCreateCustomer = async (e) => {
     e.preventDefault();
-    if (!newCustomer.name || !newCustomer.phone || !newCustomer.village) {
-      toast("Please fill name, phone, and village.", "error");
+    if (!newCustomer.name || !newCustomer.village) {
+      toast("Please fill name and village.", "error");
       return;
     }
     setCreatingCustomer(true);
@@ -102,8 +102,11 @@ function EntryForm({ onSubmit, loading }) {
   const totalAmount = useMemo(() => {
     const r = parseFloat(form.rate) || 0;
     const q = parseFloat(form.quantity) || 0;
+    if (form.entryType === "Hour") {
+      return r * q * 60;
+    }
     return r * q;
-  }, [form.rate, form.quantity]);
+  }, [form.rate, form.quantity, form.entryType]);
 
   const validate = () => {
     const e = {};
@@ -124,7 +127,7 @@ function EntryForm({ onSubmit, loading }) {
   const set = (f) => (e) => setForm(p => ({ ...p, [f]: e.target.value }));
 
   const quantityLabel = form.entryType === "Trip" ? "No. of Trips" : form.entryType === "Hour" ? "Hours" : "Quintals / Units";
-  const rateLabel = form.entryType === "Trip" ? "Rate per Trip (₹)" : form.entryType === "Hour" ? "Rate per Hour (₹)" : "Rate per Unit (₹)";
+  const rateLabel = form.entryType === "Trip" ? "Rate per Trip (₹)" : form.entryType === "Hour" ? "Rate per Minute (₹)" : "Rate per Unit (₹)";
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
