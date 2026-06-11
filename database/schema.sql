@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(100) NOT NULL,
     phone VARCHAR(15),
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
+    permissions TEXT,
+    profile_photo TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -100,3 +102,20 @@ CREATE INDEX IF NOT EXISTS idx_payments_customer ON payments(customer_id);
 CREATE INDEX IF NOT EXISTS idx_payments_season ON payments(season_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_customer ON invoices(customer_id);
+
+-- 8. Tasks Table
+CREATE TABLE IF NOT EXISTS tasks (
+    id VARCHAR(36) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    due_date DATE NOT NULL,
+    due_time VARCHAR(5),
+    assigned_to VARCHAR(36) REFERENCES users(id) ON DELETE SET NULL,
+    customer_id VARCHAR(36) REFERENCES customers(id) ON DELETE SET NULL,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'completed')),
+    created_by VARCHAR(36) REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_tasks_date ON tasks(due_date);
+CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assigned_to);

@@ -14,7 +14,14 @@ if (DB_TYPE === 'postgres') {
   console.log('PostgreSQL Selected. Instantiating connection pool...');
   dbInstance = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: { rejectUnauthorized: false },
+    max: 10, // Max clients in pool, optimized for serverless instances
+    idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+    connectionTimeoutMillis: 5000, // Return an error if a connection takes longer than 5 seconds
+  });
+
+  dbInstance.on('error', (err) => {
+    console.error('❌ Unexpected database error on idle client:', err.message);
   });
 }
 

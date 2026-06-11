@@ -50,11 +50,13 @@ exports.getDashboardSummary = async (req, res) => {
 
     // Top customers by outstanding
     const topCustomersRaw = await db.query(
-      `SELECT c.id, c.name, c.phone, c.village,
-        (SELECT COALESCE(SUM(total_amount),0) FROM entries WHERE customer_id = c.id${seasonId ? ' AND season_id = ?' : ''}) as revenue,
-        (SELECT COALESCE(SUM(amount),0) FROM payments WHERE customer_id = c.id${seasonId ? ' AND season_id = ?' : ''}) as paid
-      FROM customers c WHERE c.status = 'active'
-      ORDER BY (revenue - paid) DESC LIMIT 5`,
+      `SELECT * FROM (
+        SELECT c.id, c.name, c.phone, c.village, c.status,
+          (SELECT COALESCE(SUM(total_amount),0) FROM entries WHERE customer_id = c.id${seasonId ? ' AND season_id = ?' : ''}) as revenue,
+          (SELECT COALESCE(SUM(amount),0) FROM payments WHERE customer_id = c.id${seasonId ? ' AND season_id = ?' : ''}) as paid
+        FROM customers c
+      ) sub WHERE sub.status = 'active'
+      ORDER BY (sub.revenue - sub.paid) DESC LIMIT 5`,
       seasonId ? [seasonId, seasonId] : []
     );
     const topOutstandingCustomers = topCustomersRaw.map(tc => ({
@@ -137,11 +139,13 @@ exports.getAnalytics = async (req, res) => {
 
     // Top 10 customers by revenue
     const topCustomers = await db.query(
-      `SELECT c.name, COALESCE(SUM(e.total_amount),0) as revenue, COALESCE(SUM(p.amount),0) as paid
-       FROM customers c
-       LEFT JOIN entries e ON e.customer_id = c.id${seasonId ? ' AND e.season_id = ?' : ''}
-       LEFT JOIN payments p ON p.customer_id = c.id${seasonId ? ' AND p.season_id = ?' : ''}
-       GROUP BY c.id ORDER BY revenue DESC LIMIT 10`,
+      `SELECT name, revenue, paid FROM (
+         SELECT c.name,
+           (SELECT COALESCE(SUM(total_amount),0) FROM entries WHERE customer_id = c.id${seasonId ? ' AND season_id = ?' : ''}) as revenue,
+           (SELECT COALESCE(SUM(amount),0) FROM payments WHERE customer_id = c.id${seasonId ? ' AND season_id = ?' : ''}) as paid
+         FROM customers c
+       ) sub
+       ORDER BY sub.revenue DESC LIMIT 10`,
       seasonId ? [seasonId, seasonId] : []
     );
 

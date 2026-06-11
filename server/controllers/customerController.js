@@ -51,13 +51,13 @@ exports.getAllCustomers = async (req, res) => {
       if (seasonId) {
         entrySum = await db.get('SELECT SUM(total_amount) as total FROM entries WHERE customer_id = ? AND season_id = ?', [c.id, seasonId]);
         paymentSum = await db.get('SELECT SUM(amount) as total FROM payments WHERE customer_id = ? AND season_id = ?', [c.id, seasonId]);
-        hoursSum = await db.get('SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = "Hour"', [c.id, seasonId]);
-        tripsSum = await db.get('SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = "Trip"', [c.id, seasonId]);
+        hoursSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = 'Hour'", [c.id, seasonId]);
+        tripsSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = 'Trip'", [c.id, seasonId]);
       } else {
         entrySum = await db.get('SELECT SUM(total_amount) as total FROM entries WHERE customer_id = ?', [c.id]);
         paymentSum = await db.get('SELECT SUM(amount) as total FROM payments WHERE customer_id = ?', [c.id]);
-        hoursSum = await db.get('SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = "Hour"', [c.id]);
-        tripsSum = await db.get('SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = "Trip"', [c.id]);
+        hoursSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = 'Hour'", [c.id]);
+        tripsSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = 'Trip'", [c.id]);
       }
       
       const totalRevenue = entrySum.total || 0;
