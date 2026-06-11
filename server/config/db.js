@@ -11,13 +11,24 @@ const SQLite_DB_PATH = process.env.SQLITE_DB_PATH || path.join(__dirname, '../..
 let dbInstance = null;
 
 if (DB_TYPE === 'postgres') {
-  console.log('PostgreSQL Selected. Instantiating connection pool...');
+  const isServerless = !!process.env.VERCEL;
+  console.log(`PostgreSQL Selected. Instantiating connection pool (Mode: ${isServerless ? 'Serverless' : 'Server'})...`);
+  
   dbInstance = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
-    max: 10, // Max clients in pool, optimized for serverless instances
-    idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-    connectionTimeoutMillis: 5000, // Return an error if a connection takes longer than 5 seconds
+    max: isServerless ? 2 : 10, // Max 2 clients in serverless to prevent Supabase Pooler overload
+    idleTimeoutMillis: isServerless ? 15000 : 30000, // Close idle clients fast in serverless (15s)
+    connectionTimeoutMillis: isServerless ? 3000 : 5000, // Timeout fast in serverless (3s)
+  });
+
+  // Lifecycle Event Logging
+  dbInstance.on('connect', () => {
+    console.log('🔌 [DB Pool] New connection client created in pool.');
+  });
+  
+  dbInstance.on('remove', () => {
+    console.log('🔌 [DB Pool] Connection client removed/closed.');
   });
 
   dbInstance.on('error', (err) => {
@@ -155,11 +166,41 @@ const dbAdapter = {
         });
       });
     } else if (DB_TYPE === 'postgres') {
-      try {
-        // Test query
-        await dbInstance.query('SELECT NOW()');
-        console.log('✅ Connected to PostgreSQL database successfully.');
+      const isServerless = !!process.env.VERCEL;
+      const maxRetries = isServerless ? 3 : 1; // Retry up to 3 times in serverless
+      let attempt = 0;
+      let connected = false;
 
+      while (attempt < maxRetries && !connected) {
+        attempt++;
+        try {
+          console.log(`🔌 Attempting database connection (Attempt ${attempt}/${maxRetries})...`);
+          console.log(`📊 [DB Pool Stats] Total=${dbInstance.totalCount}, Idle=${dbInstance.idleCount}, Waiting=${dbInstance.waitingCount}`);
+          
+          await dbInstance.query('SELECT NOW()');
+          connected = true;
+          console.log('✅ Connected to PostgreSQL database successfully.');
+        } catch (err) {
+          console.error(`❌ Connection attempt ${attempt} failed: ${err.message}`);
+          if (err.message && err.message.includes('timeout')) {
+            console.error('⚠️ Timeout detected. This might be due to Supabase connection queue saturation.');
+          }
+          if (attempt >= maxRetries) {
+            throw err;
+          }
+          const delay = Math.pow(2, attempt) * 1000;
+          console.log(`🔄 Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+
+      // Skip heavy DDL audits in serverless environments to minimize cold start latency & connection overhead
+      if (isServerless) {
+        console.log('⚡ Serverless (Vercel) environment detected. Skipping automatic DDL schema validation to optimize cold starts and minimize database connections.');
+        return;
+      }
+
+      try {
         // Verify/Create schema tables
         console.log('🔍 Running database schema verification...');
         const requiredTables = ['users', 'seasons', 'customers', 'entries', 'payments', 'invoices', 'audit_logs', 'tasks'];
@@ -203,7 +244,7 @@ const dbAdapter = {
           console.log('✅ Column "profile_photo" added to users table.');
         }
       } catch (err) {
-        console.error('❌ PostgreSQL connection test or schema verification failed:', err);
+        console.error('❌ PostgreSQL schema verification failed:', err);
         throw err;
       }
     }
