@@ -144,8 +144,8 @@ export function SubmitButton({ loading, children, className = "", ...props }) {
 // Skeleton shimmer
 export function Skeleton({ className = "" }) {
   return (
-    <div className={`relative overflow-hidden rounded-xl bg-white/[0.04] ${className}`}>
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/[0.05] to-transparent" />
+    <div className={`relative overflow-hidden rounded-xl bg-[var(--fg)]/[0.06] ${className}`}>
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-[var(--fg)]/[0.08] to-transparent" />
     </div>
   );
 }
