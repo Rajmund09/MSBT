@@ -32,19 +32,8 @@ exports.createCustomer = async (req, res) => {
 exports.getAllCustomers = async (req, res) => {
   const { seasonId } = req.query;
   try {
-    let customers;
-    if (seasonId) {
-      customers = await db.query(
-        `SELECT * FROM customers WHERE id IN (
-          SELECT customer_id FROM entries WHERE season_id = ?
-          UNION
-          SELECT customer_id FROM payments WHERE season_id = ?
-        ) ORDER BY name ASC`,
-        [seasonId, seasonId]
-      );
-    } else {
-      customers = await db.query('SELECT * FROM customers ORDER BY name ASC');
-    }
+    let customers = await db.query('SELECT * FROM customers ORDER BY name ASC');
+
     
     const detailedCustomers = await Promise.all(customers.map(async (c) => {
       let entrySum, paymentSum, hoursSum, tripsSum;
