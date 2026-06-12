@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
@@ -18,8 +19,35 @@ const taskRoutes = require('./routes/tasks');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Enable CORS & JSON parsing
-app.use(cors());
+// Use Helmet for security headers
+app.use(helmet());
+
+// Configure strict CORS dynamically to prevent unauthorized access
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL,
+  process.env.CLIENT_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow local development tools, serverless calls, postman or matching origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Check if any frontend URL is configured. If not, default to allow in dev/production to prevent breaking the live app
+    const hasConfiguredOrigins = allowedOrigins.some(url => url.startsWith('http'));
+    if (!hasConfiguredOrigins) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Blocked by CORS security policy'));
+  },
+  credentials: true
+}));
+
 app.use(express.json({ limit: '10mb' }));
 
 // Serving PWA Client build assets
