@@ -16,17 +16,19 @@ import { AdaptiveActions, AdaptiveTooltip } from "@/components/ui/AdaptiveUI";
 import { exportToExcel, exportToCSV, formatEntriesForExport } from "@/utils/export";
 import { usePermission } from "@/hooks/usePermission";
 
-const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+const fmt = (n) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 
 const TYPE_ICONS = {
   Trip: <Truck size={13} />,
   Hour: <Clock size={13} />,
+  Minute: <Clock size={13} />,
   Trade: <ShoppingCart size={13} />,
 };
 const TYPE_COLORS = {
   Trip: "text-blue-400 bg-blue-500/10 border-blue-500/20",
   Hour: "text-purple-400 bg-purple-500/10 border-purple-500/20",
+  Minute: "text-purple-400 bg-purple-500/10 border-purple-500/20",
   Trade: "text-orange-400 bg-orange-500/10 border-orange-500/20",
 };
 
@@ -126,8 +128,8 @@ function EntryForm({ onSubmit, loading }) {
 
   const set = (f) => (e) => setForm(p => ({ ...p, [f]: e.target.value }));
 
-  const quantityLabel = form.entryType === "Trip" ? "No. of Trips" : form.entryType === "Hour" ? "Hours" : "Quintals / Units";
-  const rateLabel = form.entryType === "Trip" ? "Rate per Trip (₹)" : form.entryType === "Hour" ? "Rate per Minute (₹)" : "Rate per Unit (₹)";
+  const quantityLabel = form.entryType === "Trip" ? "No. of Trips" : form.entryType === "Minute" ? "Minutes" : form.entryType === "Hour" ? "Hours" : "Quintals / Units";
+  const rateLabel = form.entryType === "Trip" ? "Rate per Trip (₹)" : form.entryType === "Minute" ? "Rate per Minute (₹)" : form.entryType === "Hour" ? "Rate per Minute (₹)" : "Rate per Unit (₹)";
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -190,7 +192,7 @@ function EntryForm({ onSubmit, loading }) {
 
       <FormField label="Entry Type" required>
         <div className="flex gap-2">
-          {["Trip", "Hour", "Trade"].map(t => (
+          {["Trip", "Minute", "Trade"].map(t => (
             <button
               key={t}
               type="button"
@@ -477,7 +479,7 @@ export default function Entries() {
     );
   }, [entries, search]);
 
-  const totalRevenue = useMemo(() => entries.reduce((s, e) => s + (e.total_amount || 0), 0), [entries]);
+  const totalRevenue = useMemo(() => entries.reduce((s, e) => s + (Number(e.total_amount) || 0), 0), [entries]);
 
   const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 

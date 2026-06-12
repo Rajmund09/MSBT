@@ -10,8 +10,8 @@ exports.createEntry = async (req, res) => {
     return res.status(400).json({ error: 'Customer, Season, Type, Rate, Quantity and Date are required' });
   }
 
-  if (!['Trip', 'Hour', 'Trade'].includes(entryType)) {
-    return res.status(400).json({ error: 'Invalid entry type. Must be Trip, Hour, or Trade' });
+  if (!['Trip', 'Hour', 'Trade', 'Minute'].includes(entryType)) {
+    return res.status(400).json({ error: 'Invalid entry type. Must be Trip, Hour, Trade, or Minute' });
   }
 
   const id = genId('entry');
@@ -140,5 +140,74 @@ exports.deleteEntry = async (req, res) => {
     res.json({ message: 'Entry successfully deleted', id });
   } catch (err) {
     handleControllerError(req, res, err, 'Delete entry log');
+  }
+};
+
+exports.updateEntry = async (req, res) => {
+  const { id } = req.params;
+  const { seasonId, entryType, rate, quantity, description, entryDate } = req.body;
+
+  if (!seasonId || !entryType || rate === undefined || !quantity || !entryDate) {
+    return res.status(400).json({ error: 'Season, Type, Rate, Quantity and Date are required' });
+  }
+
+  if (!['Trip', 'Hour', 'Trade', 'Minute'].includes(entryType)) {
+    return res.status(400).json({ error: 'Invalid entry type. Must be Trip, Hour, Trade, or Minute' });
+  }
+
+  const numericRate = parseFloat(rate);
+  const numericQuantity = parseFloat(quantity);
+  let totalAmount = numericRate * numericQuantity;
+  if (entryType === 'Hour') {
+    totalAmount = numericRate * numericQuantity * 60;
+  }
+
+  try {
+    const existing = await db.get('SELECT * FROM entries WHERE id = ?', [id]);
+    if (!existing) {
+      return res.status(404).json({ error: 'Entry not found' });
+    }
+
+    const season = await db.get('SELECT * FROM seasons WHERE id = ?', [seasonId]);
+    if (!season) {
+      return res.status(404).json({ error: 'Season not found' });
+    }
+    if (season.status === 'Archived') {
+      return res.status(400).json({ error: 'Cannot log/update entries into an Archived season' });
+    }
+
+    await db.run(
+      'UPDATE entries SET season_id = ?, entry_type = ?, rate = ?, quantity = ?, total_amount = ?, description = ?, entry_date = ? WHERE id = ?',
+      [seasonId, entryType, numericRate, numericQuantity, totalAmount, description || '', entryDate, id]
+    );
+
+    // Audit Log
+    const customer = await db.get('SELECT name FROM customers WHERE id = ?', [existing.customer_id]);
+    await db.run(
+      'INSERT INTO audit_logs (id, user_id, action, target_table, target_id, details, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [
+        genId('audit'),
+        req.user.id,
+        'UPDATE_ENTRY',
+        'entries',
+        id,
+        `Updated ${entryType} entry for customer ${customer ? customer.name : existing.customer_id}: ${numericQuantity} @ ${numericRate} = INR ${totalAmount} (was ${existing.quantity} @ ${existing.rate} = INR ${existing.total_amount})`,
+        req.ip
+      ]
+    );
+
+    res.json({
+      id,
+      customerId: existing.customer_id,
+      seasonId,
+      entryType,
+      rate: numericRate,
+      quantity: numericQuantity,
+      totalAmount,
+      description,
+      entryDate
+    });
+  } catch (err) {
+    handleControllerError(req, res, err, 'Update entry log');
   }
 };

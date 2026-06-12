@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS entries (
     id VARCHAR(36) PRIMARY KEY,
     customer_id VARCHAR(36) REFERENCES customers(id) ON DELETE RESTRICT,
     season_id VARCHAR(36) REFERENCES seasons(id) ON DELETE RESTRICT,
-    entry_type VARCHAR(20) NOT NULL CHECK (entry_type IN ('Trip', 'Hour', 'Trade')),
+    entry_type VARCHAR(20) NOT NULL CHECK (entry_type IN ('Trip', 'Hour', 'Trade', 'Minute')),
     rate DECIMAL(10,2) NOT NULL CHECK (rate >= 0),
     quantity DECIMAL(10,2) NOT NULL CHECK (quantity > 0),
     total_amount DECIMAL(12,2) GENERATED ALWAYS AS (rate * quantity) STORED,

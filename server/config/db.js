@@ -152,7 +152,46 @@ const dbAdapter = {
                         }
                         
                         Promise.all(verifyCols)
-                          .then(() => resolve())
+                          .then(() => {
+                            dbInstance.get("SELECT sql FROM sqlite_master WHERE name='entries'", (err, row) => {
+                              if (err) return reject(err);
+                              if (row && !row.sql.includes('Minute')) {
+                                console.log("Migrating SQLite entries table to support 'Minute' entry type...");
+                                dbInstance.serialize(() => {
+                                  dbInstance.run("PRAGMA foreign_keys=OFF;");
+                                  dbInstance.run("BEGIN TRANSACTION;");
+                                  dbInstance.run("ALTER TABLE entries RENAME TO entries_old;");
+                                  dbInstance.run(`
+                                    CREATE TABLE entries (
+                                        id TEXT PRIMARY KEY,
+                                        customer_id TEXT REFERENCES customers(id) ON DELETE RESTRICT,
+                                        season_id TEXT REFERENCES seasons(id) ON DELETE RESTRICT,
+                                        entry_type TEXT NOT NULL CHECK (entry_type IN ('Trip', 'Hour', 'Trade', 'Minute')),
+                                        rate REAL NOT NULL CHECK (rate >= 0),
+                                        quantity REAL NOT NULL CHECK (quantity > 0),
+                                        total_amount REAL NOT NULL,
+                                        description TEXT,
+                                        entry_date TEXT NOT NULL,
+                                        created_by TEXT REFERENCES users(id),
+                                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                                    );
+                                  `);
+                                  dbInstance.run("INSERT INTO entries SELECT * FROM entries_old;");
+                                  dbInstance.run("DROP TABLE entries_old;");
+                                  dbInstance.run("COMMIT;");
+                                  dbInstance.run("PRAGMA foreign_keys=ON;", (fkErr) => {
+                                    if (fkErr) reject(fkErr);
+                                    else {
+                                      console.log("SQLite entries table migration complete.");
+                                      resolve();
+                                    }
+                                  });
+                                });
+                              } else {
+                                resolve();
+                              }
+                            });
+                          })
                           .catch(colErr => reject(colErr));
                       });
                     });
@@ -242,6 +281,16 @@ const dbAdapter = {
           console.warn('⚠️ Column "profile_photo" is missing in users table. Altering table...');
           await dbInstance.query('ALTER TABLE users ADD COLUMN profile_photo TEXT;');
           console.log('✅ Column "profile_photo" added to users table.');
+        }
+
+        // Alter entries check constraint for PostgreSQL
+        try {
+          console.log('🔄 Checking/updating entries check constraint for "Minute" support...');
+          await dbInstance.query('ALTER TABLE entries DROP CONSTRAINT IF EXISTS entries_entry_type_check;');
+          await dbInstance.query("ALTER TABLE entries ADD CONSTRAINT entries_entry_type_check CHECK (entry_type IN ('Trip', 'Hour', 'Trade', 'Minute'));");
+          console.log('✅ PostgreSQL entries check constraint verified.');
+        } catch (constErr) {
+          console.warn('⚠️ Could not update entries check constraint (possibly already updated):', constErr.message);
         }
       } catch (err) {
         console.error('❌ PostgreSQL schema verification failed:', err);

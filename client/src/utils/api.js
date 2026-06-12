@@ -114,11 +114,13 @@ export const api = {
   // Entries
   getEntries: (params) => get('/api/entries', params),
   createEntry: (body) => post('/api/entries', body),
+  updateEntry: (id, body) => put(`/api/entries/${id}`, body),
   deleteEntry: (id) => del(`/api/entries/${id}`),
 
   // Payments
   getPayments: (params) => get('/api/payments', params),
   createPayment: (body) => post('/api/payments', body),
+  updatePayment: (id, body) => put(`/api/payments/${id}`, body),
   deletePayment: (id) => del(`/api/payments/${id}`),
 
   // Calendar & Tasks

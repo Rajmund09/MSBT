@@ -13,8 +13,8 @@ exports.getDashboardSummary = async (req, res) => {
     const customersCount = await db.get('SELECT COUNT(*) as count FROM customers WHERE status = ?', ['active']);
     const entriesCount = await db.get(`SELECT COUNT(*) as count FROM entries${swhere}`, sparams);
 
-    const revenue = revenueRes.total || 0;
-    const collections = collectionsRes.total || 0;
+    const revenue = Number(revenueRes.total) || 0;
+    const collections = Number(collectionsRes.total) || 0;
     const outstanding = revenue - collections;
 
     // Active Season
@@ -60,10 +60,16 @@ exports.getDashboardSummary = async (req, res) => {
       ORDER BY (sub.revenue - sub.paid) DESC LIMIT 5`,
       seasonId ? [seasonId, seasonId] : []
     );
-    const topOutstandingCustomers = topCustomersRaw.map(tc => ({
-      ...tc,
-      outstanding: (tc.revenue || 0) - (tc.paid || 0)
-    }));
+    const topOutstandingCustomers = topCustomersRaw.map(tc => {
+      const rev = Number(tc.revenue) || 0;
+      const pd = Number(tc.paid) || 0;
+      return {
+        ...tc,
+        revenue: rev,
+        paid: pd,
+        outstanding: rev - pd
+      };
+    });
 
     // Recent activity (latest 8 audit log entries)
     const recentActivity = await db.query(
@@ -79,8 +85,8 @@ exports.getDashboardSummary = async (req, res) => {
         entriesCount: entriesCount.count || 0,
       },
       today: {
-        revenue: todayRevenue.total || 0,
-        collections: todayCollections.total || 0,
+        revenue: Number(todayRevenue.total) || 0,
+        collections: Number(todayCollections.total) || 0,
       },
       activeSeason,
       breakdown,

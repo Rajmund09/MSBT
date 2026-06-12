@@ -879,7 +879,7 @@ function TaskCard({ task, onToggle, onEdit, onDelete, showDate }) {
 }
 
 function PaymentCard({ payment, showDate }) {
-  const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+  const fmt = (n) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 
   return (
     <div className="p-4 sm:p-5 rounded-2xl border border-green-500/10 dark:border-green-500/5 bg-white dark:bg-[#121812] flex items-center justify-between gap-4 shadow-sm">
@@ -908,7 +908,7 @@ function PaymentCard({ payment, showDate }) {
 }
 
 function EntryCard({ entry, showDate }) {
-  const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+  const fmt = (n) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 
   return (
     <div className="p-4 sm:p-5 rounded-2xl border border-blue-500/10 dark:border-blue-500/5 bg-white dark:bg-[#12151c] flex items-center justify-between gap-4 shadow-sm">

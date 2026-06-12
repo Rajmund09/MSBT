@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/index";
 import { usePermission } from "@/hooks/usePermission";
 
-const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+const fmt = (n) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 
 const STATUS_CONFIG = {

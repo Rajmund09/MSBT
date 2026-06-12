@@ -12,9 +12,9 @@ import { PageHeader, Skeleton, Select } from "@/components/ui/index";
 import { BarChart2 } from "lucide-react";
 
 const COLORS = ["#f5f5f5", "#a0a0a0", "#606060", "#303030", "#888", "#bbb", "#ddd", "#444", "#999", "#ccc"];
-const THEME_COLORS = { Trip: "#818cf8", Hour: "#a78bfa", Trade: "#fb923c" };
+const THEME_COLORS = { Trip: "#818cf8", Hour: "#a78bfa", Minute: "#a78bfa", Trade: "#fb923c" };
 
-const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+const fmt = (n) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 const fmtShort = (n) => {
   n = Number(n || 0);
   if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`;

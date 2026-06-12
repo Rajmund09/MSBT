@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS entries (
     id TEXT PRIMARY KEY,
     customer_id TEXT REFERENCES customers(id) ON DELETE RESTRICT,
     season_id TEXT REFERENCES seasons(id) ON DELETE RESTRICT,
-    entry_type TEXT NOT NULL CHECK (entry_type IN ('Trip', 'Hour', 'Trade')),
+    entry_type TEXT NOT NULL CHECK (entry_type IN ('Trip', 'Hour', 'Trade', 'Minute')),
     rate REAL NOT NULL CHECK (rate >= 0),
     quantity REAL NOT NULL CHECK (quantity > 0),
     total_amount REAL NOT NULL, -- Calculated before inserting in JS for SQLite support

@@ -7,7 +7,7 @@ import { api } from "@/utils/api";
 import { useToast } from "@/components/ui/Toast";
 import { PageHeader, FormField, Select, Skeleton } from "@/components/ui/index";
 
-const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+const fmt = (n) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day:"2-digit", month:"long", year:"numeric" }) : "—";
 
 // Bill number generator
@@ -59,8 +59,8 @@ export default function Billing() {
         api.getPayments({ customerId: selectedCustomer, seasonId: selectedSeason }),
       ]);
       const season = seasons.find(s => s.id === selectedSeason);
-      const totalRevenue = entries.reduce((s, e) => s + (e.total_amount || 0), 0);
-      const totalPaid = payments.reduce((s, p) => s + (p.amount || 0), 0);
+      const totalRevenue = entries.reduce((s, e) => s + (Number(e.total_amount) || 0), 0);
+      const totalPaid = payments.reduce((s, p) => s + (Number(p.amount) || 0), 0);
       setBillData({
         customer: customer.customer,
         season,
@@ -110,10 +110,10 @@ export default function Billing() {
   };
 
   const COMPANY = {
-    name: "Mahalaxmi Samprat Behara Traders",
+    name: "Mahalaxmi SB Traders",
     tagline: "Agricultural Trading & Services",
-    address: "Balasore, Odisha",
-    phone: "Contact: +91 99999 00000",
+    address: "Kalahandi, Odisha",
+    phone: "Contact: +91 9556644965",
   };
 
   return (
@@ -190,6 +190,13 @@ export default function Billing() {
               className="bg-[#ffffff] text-[#000000] rounded-2xl overflow-hidden shadow-2xl p-4 sm:p-8 md:p-10 max-w-3xl mx-auto"
               style={{ fontFamily: "'DM Mono', monospace" }}
             >
+              {/* Devotional Top Header */}
+              <div className="text-center mb-6 border-b border-dashed border-[#e5e7eb] pb-2 text-[#dc2626] font-bold tracking-widest text-[10px] sm:text-xs flex items-center justify-center gap-2 select-none">
+                <span className="text-[#ea580c]">✿</span>
+                <span>॥ जय श्री श्याम ॥</span>
+                <span className="text-[#ea580c]">✿</span>
+              </div>
+
               {/* Header */}
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0 border-b-2 border-[#000000] pb-6 sm:pb-8 mb-6 sm:mb-8">
                 <div>
@@ -304,9 +311,10 @@ export default function Billing() {
                   <div className="w-32 border-b border-[#9ca3af] mb-1" />
                   <div className="text-[10px] text-[#9ca3af] uppercase tracking-widest">Customer Signature</div>
                 </div>
-                <div className="sm:text-right">
-                  <div className="text-xs font-bold mb-1">{COMPANY.name}</div>
-                  <div className="w-32 border-b border-[#9ca3af] mb-1 sm:ml-auto" />
+                <div className="sm:text-right flex flex-col sm:items-end gap-1">
+                  <div className="h-12 w-32 relative my-1 flex sm:justify-end justify-start">
+                    <img src="/signature.png" alt="Authorised Signature" className="h-full object-contain" />
+                  </div>
                   <div className="text-[10px] text-[#9ca3af] uppercase tracking-widest">Authorised Signature</div>
                 </div>
               </div>

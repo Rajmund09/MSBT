@@ -36,30 +36,52 @@ exports.getAllCustomers = async (req, res) => {
 
     
     const detailedCustomers = await Promise.all(customers.map(async (c) => {
-      let entrySum, paymentSum, hoursSum, tripsSum;
+      let entrySum, paymentSum, tripsSum, minutesSum, hoursSum, tradesSum;
       if (seasonId) {
         entrySum = await db.get('SELECT SUM(total_amount) as total FROM entries WHERE customer_id = ? AND season_id = ?', [c.id, seasonId]);
         paymentSum = await db.get('SELECT SUM(amount) as total FROM payments WHERE customer_id = ? AND season_id = ?', [c.id, seasonId]);
-        hoursSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = 'Hour'", [c.id, seasonId]);
         tripsSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = 'Trip'", [c.id, seasonId]);
+        minutesSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = 'Minute'", [c.id, seasonId]);
+        hoursSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = 'Hour'", [c.id, seasonId]);
+        tradesSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = 'Trade'", [c.id, seasonId]);
       } else {
         entrySum = await db.get('SELECT SUM(total_amount) as total FROM entries WHERE customer_id = ?', [c.id]);
         paymentSum = await db.get('SELECT SUM(amount) as total FROM payments WHERE customer_id = ?', [c.id]);
-        hoursSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = 'Hour'", [c.id]);
         tripsSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = 'Trip'", [c.id]);
+        minutesSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = 'Minute'", [c.id]);
+        hoursSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = 'Hour'", [c.id]);
+        tradesSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = 'Trade'", [c.id]);
       }
       
-      const totalRevenue = entrySum.total || 0;
-      const totalPaid = paymentSum.total || 0;
+      const totalRevenue = Number(entrySum?.total) || 0;
+      const totalPaid = Number(paymentSum?.total) || 0;
       const outstanding = totalRevenue - totalPaid;
 
-      const totalHours = hoursSum?.total || 0;
-      const totalTrips = tripsSum?.total || 0;
+      const qTrips = Number(tripsSum?.total) || 0;
+      const qMinutes = Number(minutesSum?.total) || 0;
+      const qHours = Number(hoursSum?.total) || 0;
+      const qTrades = Number(tradesSum?.total) || 0;
+
+      const totalTrips = qTrips;
+      const totalMinutes = qMinutes + (qHours * 60);
+      const totalTrades = qTrades;
       
       let facilityDetails = [];
-      if (totalHours > 0) facilityDetails.push(`${totalHours} Hour(s)`);
       if (totalTrips > 0) facilityDetails.push(`${totalTrips} Trip(s)`);
+      if (totalMinutes > 0) facilityDetails.push(`${totalMinutes} Minute(s)`);
+      if (totalTrades > 0) facilityDetails.push(`${totalTrades} Trade(s)`);
       const facilityDetailsStr = facilityDetails.length > 0 ? facilityDetails.join(' | ') : 'None';
+
+      const customerSeasons = await db.query(`
+        SELECT DISTINCT s.name 
+        FROM (
+          SELECT season_id FROM entries WHERE customer_id = ?
+          UNION
+          SELECT season_id FROM payments WHERE customer_id = ?
+        ) ep
+        JOIN seasons s ON ep.season_id = s.id
+      `, [c.id, c.id]);
+      const customerSeasonNames = customerSeasons.map(s => s.name).join(', ') || 'None';
 
       const lastEdit = await db.get(`
         SELECT u.full_name, u.role 
@@ -76,7 +98,11 @@ exports.getAllCustomers = async (req, res) => {
         totalPaid,
         outstanding,
         facilityDetails: facilityDetailsStr,
-        lastEditedBy
+        lastEditedBy,
+        seasonName: customerSeasonNames,
+        totalTrips,
+        totalMinutes,
+        totalTrades
       };
     }));
 
@@ -143,8 +169,8 @@ exports.getCustomerById = async (req, res) => {
     });
 
     // Summary calculations
-    const totalRevenue = entries.reduce((acc, curr) => acc + curr.total_amount, 0);
-    const totalPaid = payments.reduce((acc, curr) => acc + curr.amount, 0);
+    const totalRevenue = entries.reduce((acc, curr) => acc + (Number(curr.total_amount) || 0), 0);
+    const totalPaid = payments.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
     const outstanding = totalRevenue - totalPaid;
 
     res.json({

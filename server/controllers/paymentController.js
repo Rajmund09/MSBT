@@ -123,3 +123,66 @@ exports.deletePayment = async (req, res) => {
     handleControllerError(req, res, err, 'Delete payment transaction');
   }
 };
+
+exports.updatePayment = async (req, res) => {
+  const { id } = req.params;
+  const { seasonId, amount, paymentMode, referenceNo, paymentDate, notes } = req.body;
+
+  if (!seasonId || !amount || !paymentMode || !paymentDate) {
+    return res.status(400).json({ error: 'Season, Amount, Payment Mode and Date are required' });
+  }
+
+  const numericAmount = parseFloat(amount);
+  if (numericAmount <= 0) {
+    return res.status(400).json({ error: 'Amount must be greater than zero' });
+  }
+
+  try {
+    const existing = await db.get('SELECT * FROM payments WHERE id = ?', [id]);
+    if (!existing) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+
+    // Check if season is active or archived
+    const season = await db.get('SELECT * FROM seasons WHERE id = ?', [seasonId]);
+    if (!season) {
+      return res.status(404).json({ error: 'Season not found' });
+    }
+    if (season.status === 'Archived') {
+      return res.status(400).json({ error: 'Cannot log/update payments in an Archived season' });
+    }
+
+    await db.run(
+      'UPDATE payments SET season_id = ?, amount = ?, payment_mode = ?, reference_no = ?, payment_date = ?, notes = ? WHERE id = ?',
+      [seasonId, numericAmount, paymentMode, referenceNo || null, paymentDate, notes || '', id]
+    );
+
+    // Audit Log
+    const customer = await db.get('SELECT name FROM customers WHERE id = ?', [existing.customer_id]);
+    await db.run(
+      'INSERT INTO audit_logs (id, user_id, action, target_table, target_id, details, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [
+        genId('audit'),
+        req.user.id,
+        'UPDATE_PAYMENT',
+        'payments',
+        id,
+        `Updated payment for customer ${customer ? customer.name : existing.customer_id}: INR ${numericAmount} via ${paymentMode} (was INR ${existing.amount} via ${existing.payment_mode})`,
+        req.ip
+      ]
+    );
+
+    res.json({
+      id,
+      customerId: existing.customer_id,
+      seasonId,
+      amount: numericAmount,
+      paymentMode,
+      referenceNo,
+      paymentDate,
+      notes
+    });
+  } catch (err) {
+    handleControllerError(req, res, err, 'Update payment transaction');
+  }
+};

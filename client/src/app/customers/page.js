@@ -13,13 +13,13 @@ import {
   FormField, Input, Textarea, SubmitButton, Select
 } from "@/components/ui/index";
 import { AdaptiveActions, AdaptiveTooltip } from "@/components/ui/AdaptiveUI";
-import { exportToExcel, exportToCSV, formatCustomersForExport } from "@/utils/export";
+import { exportCustomers } from "@/utils/export";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermission } from "@/hooks/usePermission";
 
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+const fmt = (n) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 
 // ─── Skeleton loader ─────────────────────────────────────────────────────────
 function TableSkeleton() {
@@ -325,14 +325,14 @@ export default function Customers() {
               <button onClick={() => {
                 const selectedSeason = seasons.find(s => s.id === selectedSeasonId);
                 const seasonName = selectedSeason ? selectedSeason.name : "All Seasons";
-                exportToCSV(formatCustomersForExport(filtered, seasonName), "MSBT_Customers");
+                exportCustomers(filtered, seasonName, "csv");
               }} className="h-9 px-3 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--fg)]/5 transition-all inline-flex items-center gap-1.5">
                 <Download size={13} /> CSV
               </button>
               <button onClick={() => {
                 const selectedSeason = seasons.find(s => s.id === selectedSeasonId);
                 const seasonName = selectedSeason ? selectedSeason.name : "All Seasons";
-                exportToExcel(formatCustomersForExport(filtered, seasonName), "MSBT_Customers");
+                exportCustomers(filtered, seasonName, "excel");
               }} className="h-9 px-3 rounded-xl border border-[var(--border)] font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--fg)]/5 transition-all inline-flex items-center gap-1.5">
                 <Download size={13} /> Excel
               </button>

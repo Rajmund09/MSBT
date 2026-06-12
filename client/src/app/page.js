@@ -12,7 +12,7 @@ import { api } from "@/utils/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/index";
 
-const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+const fmt = (n) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 const fmtShort = (n) => {
   n = Number(n || 0);
   if (n >= 10000000) return `₹${(n / 10000000).toFixed(1)}Cr`;

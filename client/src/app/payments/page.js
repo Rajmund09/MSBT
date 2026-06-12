@@ -15,7 +15,7 @@ import { AdaptiveActions, AdaptiveTooltip } from "@/components/ui/AdaptiveUI";
 import { exportToExcel, exportToCSV, formatPaymentsForExport } from "@/utils/export";
 import { usePermission } from "@/hooks/usePermission";
 
-const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+const fmt = (n) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 
 const MODE_CONFIG = {
@@ -271,7 +271,7 @@ export default function Payments() {
     );
   }, [payments, search]);
 
-  const totalCollected = useMemo(() => payments.reduce((s, p) => s + (p.amount || 0), 0), [payments]);
+  const totalCollected = useMemo(() => payments.reduce((s, p) => s + (Number(p.amount) || 0), 0), [payments]);
 
   const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 

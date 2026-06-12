@@ -5,6 +5,7 @@ const { verifyToken, requireRole, requirePermission } = require('../middleware/a
 
 router.post('/', verifyToken, requirePermission('entries', 'create'), entryController.createEntry);
 router.get('/', verifyToken, requirePermission('entries', 'view'), entryController.getAllEntries);
+router.put('/:id', verifyToken, requirePermission('entries', 'edit'), entryController.updateEntry);
 router.delete('/:id', verifyToken, requirePermission('entries', 'delete'), entryController.deleteEntry);
 
 module.exports = router;
