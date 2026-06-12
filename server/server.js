@@ -37,8 +37,8 @@ app.use(cors({
       return callback(null, true);
     }
     
-    // Check if any frontend URL is configured. If not, default to allow in dev/production to prevent breaking the live app
-    const hasConfiguredOrigins = allowedOrigins.some(url => url.startsWith('http'));
+    // Check if any production frontend URL is configured. If not, default to allow to prevent breaking the live app
+    const hasConfiguredOrigins = !!(process.env.FRONTEND_URL || process.env.CLIENT_URL);
     if (!hasConfiguredOrigins) {
       return callback(null, true);
     }
