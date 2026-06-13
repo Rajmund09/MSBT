@@ -118,6 +118,16 @@ The customer phone number is optional (`phone` value defaults to an empty string
 
 ---
 
+## 🆕 Recent Performance & UX Upgrades
+
+- **⚡ N+1 Database Resolution:** Optimized the customer listing endpoint (`/api/customers`) by aggregating customer revenue and collections into bulk SQL queries, dropping database connections from `1 + 8*N` down to a flat 5 queries, eliminating Vercel's 5-second serverless execution timeouts.
+- **📅 Dashboard Season Filtering:** Added an interactive season selector to the main dashboard. Users can filter counters, active customer summaries, and metrics cards (Total Revenue, Collected, and Outstanding) by season, defaulting to a unified global "All Seasons" view.
+- **⌨️ Keyboard-Driven Select Dropdowns:** Enhanced the custom `Select` component with a type-ahead keyboard filtering mechanism. Without an intrusive visible search bar, users can type options to search, navigate with `Enter` / `Backspace`, and clear their typed query automatically after 1.5 seconds of inactivity.
+- **📊 Adaptive Chart Themeing & Layouts:** Refactored the Analytics dashboard widgets using dynamic CSS theme variables (`var(--fg)`, `var(--fg-muted)`, `var(--border)`). Ensured the Pie Chart container utilizes block-allocated dimensions to prevent responsive container width collapses.
+- **📌 Standing Entry Modals:** Modified "Add Entry" modals to remain open for rapid, repetitive entries. Submitting a new record updates the data grid in the background and clears only `quantity` and `description` fields, while preserving chosen metadata (customer, season, rate, and entry date) until dismissed.
+
+---
+
 ## 🚀 Oracle Cloud Free Tier Deployment (`deploy.sh`)
 
 An auto-deployment script is included for deploying to Oracle Cloud or general Ubuntu 22.04 LTS servers. It:
