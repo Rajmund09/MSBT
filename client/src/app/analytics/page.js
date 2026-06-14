@@ -65,8 +65,40 @@ export default function Analytics() {
   useEffect(() => {
     setLoading(true);
     api.getAnalytics(selectedSeason ? { seasonId: selectedSeason } : {})
-      .then(d => { setData(d); setLoading(false); })
-      .catch(err => { toast(err.message, "error"); setLoading(false); });
+      .then(d => {
+        // Coerce numerical values returned as strings by PostgreSQL pg client
+        if (d) {
+          if (d.byType) {
+            d.byType = d.byType.map(x => ({ ...x, value: Number(x.value) || 0 }));
+          }
+          if (d.revenueByMonth) {
+            d.revenueByMonth = d.revenueByMonth.map(x => ({ ...x, value: Number(x.value) || 0 }));
+          }
+          if (d.collectionsByMonth) {
+            d.collectionsByMonth = d.collectionsByMonth.map(x => ({ ...x, value: Number(x.value) || 0 }));
+          }
+          if (d.topCustomers) {
+            d.topCustomers = d.topCustomers.map(x => ({
+              ...x,
+              revenue: Number(x.revenue) || 0,
+              paid: Number(x.paid) || 0
+            }));
+          }
+          if (d.seasonStats) {
+            d.seasonStats = d.seasonStats.map(x => ({
+              ...x,
+              revenue: Number(x.revenue) || 0,
+              paid: Number(x.paid) || 0
+            }));
+          }
+        }
+        setData(d);
+        setLoading(false);
+      })
+      .catch(err => {
+        toast(err.message, "error");
+        setLoading(false);
+      });
   }, [selectedSeason]);
 
   const monthFmt = (m) => {
