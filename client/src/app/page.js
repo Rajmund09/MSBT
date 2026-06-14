@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { api } from "@/utils/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { Skeleton } from "@/components/ui/index";
+import { Skeleton, Select } from "@/components/ui/index";
 
 const fmt = (n) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 const fmtShort = (n) => {
@@ -133,7 +133,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     setLoading(true);
-    api.getDashboard(selectedSeasonId)
+    const params = selectedSeasonId ? { seasonId: selectedSeasonId } : {};
+    api.getDashboard(params)
       .then(d => { setData(d); setLoading(false); })
       .catch(err => { setError(err.message); setLoading(false); });
   }, [selectedSeasonId]);
@@ -200,7 +201,29 @@ export default function Dashboard() {
             You have <span className="text-[var(--fg)]">{metrics.customersCount} active customers</span> and <span className="text-[var(--fg)]">{metrics.entriesCount} entries logged</span>.
           </p>
         </motion.div>
-        
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+          className="w-full md:w-64 shrink-0 flex flex-col gap-2 mt-4 md:mt-0"
+        >
+          <span className="font-mono text-[9px] sm:text-[10px] tracking-widest uppercase text-[var(--fg-muted)]">
+            Season Filter
+          </span>
+          <Select
+            value={selectedSeasonId}
+            onChange={(e) => setSelectedSeasonId(e.target.value)}
+            className="w-full"
+          >
+            <option value="">All Seasons</option>
+            {seasons.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </Select>
+        </motion.div>
       </section>
 
       {/* Main Metrics */}
