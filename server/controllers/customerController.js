@@ -32,66 +32,121 @@ exports.createCustomer = async (req, res) => {
 exports.getAllCustomers = async (req, res) => {
   const { seasonId } = req.query;
   try {
-    let customers = await db.query('SELECT * FROM customers ORDER BY name ASC');
+    const customers = await db.query('SELECT * FROM customers ORDER BY name ASC');
+    if (customers.length === 0) {
+      return res.json([]);
+    }
 
+    // Bulk query entry sums for all customers
+    let entrySums;
+    if (seasonId) {
+      entrySums = await db.query(`
+        SELECT 
+          customer_id,
+          SUM(total_amount) as total_revenue,
+          SUM(CASE WHEN entry_type = 'Trip' THEN quantity ELSE 0 END) as total_trips,
+          SUM(CASE WHEN entry_type = 'Minute' THEN quantity ELSE 0 END) as total_minutes,
+          SUM(CASE WHEN entry_type = 'Hour' THEN quantity ELSE 0 END) as total_hours,
+          SUM(CASE WHEN entry_type = 'Trade' THEN quantity ELSE 0 END) as total_trades
+        FROM entries 
+        WHERE season_id = ?
+        GROUP BY customer_id
+      `, [seasonId]);
+    } else {
+      entrySums = await db.query(`
+        SELECT 
+          customer_id,
+          SUM(total_amount) as total_revenue,
+          SUM(CASE WHEN entry_type = 'Trip' THEN quantity ELSE 0 END) as total_trips,
+          SUM(CASE WHEN entry_type = 'Minute' THEN quantity ELSE 0 END) as total_minutes,
+          SUM(CASE WHEN entry_type = 'Hour' THEN quantity ELSE 0 END) as total_hours,
+          SUM(CASE WHEN entry_type = 'Trade' THEN quantity ELSE 0 END) as total_trades
+        FROM entries 
+        GROUP BY customer_id
+      `);
+    }
+
+    // Bulk query payment sums for all customers
+    let paymentSums;
+    if (seasonId) {
+      paymentSums = await db.query(`
+        SELECT customer_id, SUM(amount) as total_paid
+        FROM payments
+        WHERE season_id = ?
+        GROUP BY customer_id
+      `, [seasonId]);
+    } else {
+      paymentSums = await db.query(`
+        SELECT customer_id, SUM(amount) as total_paid
+        FROM payments
+        GROUP BY customer_id
+      `);
+    }
+
+    // Bulk query all active seasons per customer
+    const customerSeasons = await db.query(`
+      SELECT DISTINCT ep.customer_id, s.name as season_name
+      FROM (
+        SELECT customer_id, season_id FROM entries
+        UNION
+        SELECT customer_id, season_id FROM payments
+      ) ep
+      JOIN seasons s ON ep.season_id = s.id
+    `);
+
+    // Bulk query last edit from audit logs
+    const lastEdits = await db.query(`
+      SELECT a.target_id as customer_id, u.full_name, u.role
+      FROM audit_logs a
+      JOIN users u ON a.user_id = u.id
+      WHERE a.target_table = 'customers' AND (a.action = 'UPDATE_CUSTOMER' OR a.action = 'CREATE_CUSTOMER')
+      ORDER BY a.created_at DESC
+    `);
+
+    // Create lookup maps for fast O(1) in-memory resolution
+    const entryMap = new Map(entrySums.map(item => [item.customer_id, item]));
+    const paymentMap = new Map(paymentSums.map(item => [item.customer_id, item.total_paid]));
     
-    const detailedCustomers = await Promise.all(customers.map(async (c) => {
-      let entrySum, paymentSum, tripsSum, minutesSum, hoursSum, tradesSum;
-      if (seasonId) {
-        entrySum = await db.get('SELECT SUM(total_amount) as total FROM entries WHERE customer_id = ? AND season_id = ?', [c.id, seasonId]);
-        paymentSum = await db.get('SELECT SUM(amount) as total FROM payments WHERE customer_id = ? AND season_id = ?', [c.id, seasonId]);
-        tripsSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = 'Trip'", [c.id, seasonId]);
-        minutesSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = 'Minute'", [c.id, seasonId]);
-        hoursSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = 'Hour'", [c.id, seasonId]);
-        tradesSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND season_id = ? AND entry_type = 'Trade'", [c.id, seasonId]);
-      } else {
-        entrySum = await db.get('SELECT SUM(total_amount) as total FROM entries WHERE customer_id = ?', [c.id]);
-        paymentSum = await db.get('SELECT SUM(amount) as total FROM payments WHERE customer_id = ?', [c.id]);
-        tripsSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = 'Trip'", [c.id]);
-        minutesSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = 'Minute'", [c.id]);
-        hoursSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = 'Hour'", [c.id]);
-        tradesSum = await db.get("SELECT SUM(quantity) as total FROM entries WHERE customer_id = ? AND entry_type = 'Trade'", [c.id]);
+    const seasonsMap = new Map();
+    customerSeasons.forEach(item => {
+      if (!seasonsMap.has(item.customer_id)) {
+        seasonsMap.set(item.customer_id, []);
       }
-      
-      const totalRevenue = Number(entrySum?.total) || 0;
-      const totalPaid = Number(paymentSum?.total) || 0;
+      seasonsMap.get(item.customer_id).push(item.season_name);
+    });
+
+    const editMap = new Map();
+    lastEdits.forEach(item => {
+      if (!editMap.has(item.customer_id)) {
+        editMap.set(item.customer_id, `${item.full_name} (${item.role})`);
+      }
+    });
+
+    // Merge everything in memory
+    const detailedCustomers = customers.map(c => {
+      const entryData = entryMap.get(c.id) || {};
+      const totalRevenue = Number(entryData.total_revenue) || 0;
+      const totalPaid = Number(paymentMap.get(c.id)) || 0;
       const outstanding = totalRevenue - totalPaid;
 
-      const qTrips = Number(tripsSum?.total) || 0;
-      const qMinutes = Number(minutesSum?.total) || 0;
-      const qHours = Number(hoursSum?.total) || 0;
-      const qTrades = Number(tradesSum?.total) || 0;
+      const qTrips = Number(entryData.total_trips) || 0;
+      const qMinutes = Number(entryData.total_minutes) || 0;
+      const qHours = Number(entryData.total_hours) || 0;
+      const qTrades = Number(entryData.total_trades) || 0;
 
       const totalTrips = qTrips;
       const totalMinutes = qMinutes + (qHours * 60);
       const totalTrades = qTrades;
-      
+
       let facilityDetails = [];
       if (totalTrips > 0) facilityDetails.push(`${totalTrips} Trip(s)`);
       if (totalMinutes > 0) facilityDetails.push(`${totalMinutes} Minute(s)`);
       if (totalTrades > 0) facilityDetails.push(`${totalTrades} Trade(s)`);
       const facilityDetailsStr = facilityDetails.length > 0 ? facilityDetails.join(' | ') : 'None';
 
-      const customerSeasons = await db.query(`
-        SELECT DISTINCT s.name 
-        FROM (
-          SELECT season_id FROM entries WHERE customer_id = ?
-          UNION
-          SELECT season_id FROM payments WHERE customer_id = ?
-        ) ep
-        JOIN seasons s ON ep.season_id = s.id
-      `, [c.id, c.id]);
-      const customerSeasonNames = customerSeasons.map(s => s.name).join(', ') || 'None';
+      const customerSeasonNames = seasonsMap.get(c.id)?.join(', ') || 'None';
+      const lastEditedBy = editMap.get(c.id) || 'System';
 
-      const lastEdit = await db.get(`
-        SELECT u.full_name, u.role 
-        FROM audit_logs a 
-        JOIN users u ON a.user_id = u.id 
-        WHERE a.target_id = ? AND a.target_table = 'customers' 
-        ORDER BY a.created_at DESC LIMIT 1
-      `, [c.id]);
-      const lastEditedBy = lastEdit ? `${lastEdit.full_name} (${lastEdit.role})` : 'System';
-      
       return {
         ...c,
         totalRevenue,
@@ -104,11 +159,8 @@ exports.getAllCustomers = async (req, res) => {
         totalMinutes,
         totalTrades
       };
-    }));
+    });
 
-    // If a season is selected, we might only want to return customers active in that season,
-    // but typically we can return all customers and just their season stats,
-    // let's return all customers.
     res.json(detailedCustomers);
   } catch (err) {
     handleControllerError(req, res, err, 'Fetch customer index');

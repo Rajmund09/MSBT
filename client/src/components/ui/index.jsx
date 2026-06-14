@@ -49,7 +49,9 @@ export function Textarea({ className = "", error, ...props }) {
 // Select dropdown — min-height 44px for touch targets
 export function Select({ className = "", error, children, value, onChange, ...props }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const containerRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   // Extract options from children natively
   const options = React.Children.toArray(children).map(child => {
@@ -60,6 +62,25 @@ export function Select({ className = "", error, children, value, onChange, ...pr
   }).filter(Boolean);
 
   const selectedOption = options.find(o => String(o.value) === String(value));
+
+  // Reset search when dropdown closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchTerm("");
+    }
+  }, [isOpen]);
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -77,6 +98,10 @@ export function Select({ className = "", error, children, value, onChange, ...pr
     }
     setIsOpen(false);
   };
+
+  const filteredOptions = options.filter(opt =>
+    String(opt.label).toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className={`relative w-full ${className}`} ref={containerRef}>
@@ -99,18 +124,37 @@ export function Select({ className = "", error, children, value, onChange, ...pr
             transition={{ duration: 0.15 }}
             className="absolute z-50 w-full mt-2 bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-2xl overflow-hidden"
           >
+            {options.length > 5 && (
+              <div className="p-2 border-b border-[var(--border)] bg-[var(--fg)]/[0.01]">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg)] text-[var(--fg)] placeholder-[var(--fg)]/30 text-xs font-mono focus:outline-none focus:border-[var(--fg)]/20 focus:bg-[var(--fg)]/[0.02] transition-all"
+                  onClick={(e) => e.stopPropagation()} // Prevent close on search click
+                />
+              </div>
+            )}
             <div className="max-h-60 overflow-y-auto overscroll-contain flex flex-col py-2 no-scrollbar">
-              {options.map((opt, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => handleSelect(opt.value)}
-                  className={`w-full text-left px-4 py-2.5 text-sm font-mono hover:bg-[var(--fg)]/5 transition-colors flex items-center justify-between ${String(value) === String(opt.value) ? "text-[var(--fg)] bg-[var(--fg)]/[0.02]" : "text-[var(--fg-muted)]"}`}
-                >
-                  <span className="truncate pr-4">{opt.label}</span>
-                  {String(value) === String(opt.value) && <Check size={14} className="shrink-0" />}
-                </button>
-              ))}
+              {filteredOptions.length === 0 ? (
+                <div className="px-4 py-3 text-xs font-mono text-[var(--fg-muted)] italic text-center">
+                  No results found
+                </div>
+              ) : (
+                filteredOptions.map((opt, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => handleSelect(opt.value)}
+                    className={`w-full text-left px-4 py-2.5 text-sm font-mono hover:bg-[var(--fg)]/5 transition-colors flex items-center justify-between ${String(value) === String(opt.value) ? "text-[var(--fg)] bg-[var(--fg)]/[0.02]" : "text-[var(--fg-muted)]"}`}
+                  >
+                    <span className="truncate pr-4">{opt.label}</span>
+                    {String(value) === String(opt.value) && <Check size={14} className="shrink-0" />}
+                  </button>
+                ))
+              )}
             </div>
           </motion.div>
         )}
