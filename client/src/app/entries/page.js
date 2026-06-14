@@ -121,9 +121,18 @@ function EntryForm({ onSubmit, loading }) {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) onSubmit(form);
+    if (validate()) {
+      const ok = await onSubmit(form);
+      if (ok) {
+        setForm(p => ({
+          ...p,
+          quantity: "",
+          description: ""
+        }));
+      }
+    }
   };
 
   const set = (f) => (e) => setForm(p => ({ ...p, [f]: e.target.value }));
@@ -444,11 +453,12 @@ export default function Entries() {
         entryDate: form.entryDate,
       });
       toast("Entry added", "success");
-      setCreateOpen(false);
       setLoading(true);
       await fetchEntries();
+      return true;
     } catch (err) {
       toast(err.message || "Failed to add entry", "error");
+      return false;
     } finally {
       setSubmitting(false);
     }

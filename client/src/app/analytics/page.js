@@ -11,8 +11,8 @@ import { useToast } from "@/components/ui/Toast";
 import { PageHeader, Skeleton, Select } from "@/components/ui/index";
 import { BarChart2 } from "lucide-react";
 
-const COLORS = ["#f5f5f5", "#a0a0a0", "#606060", "#303030", "#888", "#bbb", "#ddd", "#444", "#999", "#ccc"];
-const THEME_COLORS = { Trip: "#818cf8", Hour: "#a78bfa", Minute: "#a78bfa", Trade: "#fb923c" };
+const COLORS = ["#818cf8", "#a78bfa", "#fb923c", "#34d399", "#f43f5e", "#06b6d4", "#eab308"];
+const THEME_COLORS = { Trip: "#818cf8", Hour: "#c084fc", Minute: "#a78bfa", Trade: "#fb923c" };
 
 const fmt = (n) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 const fmtShort = (n) => {
@@ -25,7 +25,7 @@ const fmtShort = (n) => {
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-xs font-mono shadow-xl">
+    <div className="bg-[var(--bg)] border border-[var(--border)] text-[var(--fg)] rounded-xl px-4 py-3 text-xs font-mono shadow-xl">
       <p className="text-[var(--fg-muted)] mb-2">{label}</p>
       {payload.map((p, i) => (
         <p key={i} style={{ color: p.color }} className="flex items-center gap-2">
@@ -120,20 +120,20 @@ export default function Analytics() {
             <AreaChart data={trendData} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
               <defs>
                 <linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f5f5f5" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#f5f5f5" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--fg)" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="var(--fg)" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gCol" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#34d399" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#34d399" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10, fontFamily: "monospace" }} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10, fontFamily: "monospace" }} tickFormatter={fmtShort} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="month" tick={{ fill: "var(--fg-muted)", fontSize: 10, fontFamily: "monospace" }} />
+              <YAxis tick={{ fill: "var(--fg-muted)", fontSize: 10, fontFamily: "monospace" }} tickFormatter={fmtShort} />
               <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#f5f5f5" strokeWidth={1.5} fill="url(#gRev)" />
-              <Area type="monotone" dataKey="collections" name="Collected" stroke="#34d399" strokeWidth={1.5} fill="url(#gCol)" />
+              <Area type="monotone" dataKey="revenue" name="Revenue" stroke="var(--fg)" strokeWidth={1.5} fill="url(#gRev)" />
+              <Area type="monotone" dataKey="collections" name="Collected" stroke="#10b981" strokeWidth={1.5} fill="url(#gCol)" />
             </AreaChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -141,33 +141,35 @@ export default function Analytics() {
         {/* By Entry Type */}
         <ChartCard title="Revenue by Entry Type" loading={loading}>
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie
-                  data={data?.byType || []}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={70}
-                  innerRadius={38}
-                  strokeWidth={0}
-                >
-                  {(data?.byType || []).map((entry, i) => (
-                    <Cell key={i} fill={THEME_COLORS[entry.name] || COLORS[i]} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex flex-row sm:flex-col gap-3 sm:gap-3 flex-wrap justify-center sm:justify-start shrink-0">
+            <div className="w-full sm:w-1/2 h-[180px] relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={data?.byType || []}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={70}
+                    innerRadius={38}
+                    strokeWidth={0}
+                  >
+                    {(data?.byType || []).map((entry, i) => (
+                      <Cell key={i} fill={THEME_COLORS[entry.name] || COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex flex-row sm:flex-col gap-3 sm:gap-3 flex-wrap justify-center sm:justify-start shrink-0 w-full sm:w-1/2">
               {(data?.byType || []).map((t, i) => (
-                <div key={t.name} className="flex items-center justify-between gap-3">
+                <div key={t.name} className="flex items-center justify-between gap-3 w-[120px] sm:w-full">
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: THEME_COLORS[t.name] || COLORS[i] }} />
-                    <span className="font-mono text-xs text-[var(--fg-muted)]">{t.name}</span>
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: THEME_COLORS[t.name] || COLORS[i % COLORS.length] }} />
+                    <span className="font-mono text-xs text-[var(--fg-muted)] truncate">{t.name}</span>
                   </div>
-                  <span className="font-mono text-xs">{fmtShort(t.value)}</span>
+                  <span className="font-mono text-xs shrink-0">{fmtShort(t.value)}</span>
                 </div>
               ))}
             </div>
@@ -178,12 +180,12 @@ export default function Analytics() {
         <ChartCard title="Top 10 Customers by Revenue" loading={loading}>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={(data?.topCustomers || []).map(c => ({ name: c.name.split(" ")[0], revenue: c.revenue, paid: c.paid }))} layout="vertical" margin={{ left: 0, right: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis type="number" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9, fontFamily: "monospace" }} tickFormatter={fmtShort} />
-              <YAxis type="category" dataKey="name" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 9, fontFamily: "monospace" }} width={52} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis type="number" tick={{ fill: "var(--fg-muted)", fontSize: 9, fontFamily: "monospace" }} tickFormatter={fmtShort} />
+              <YAxis type="category" dataKey="name" tick={{ fill: "var(--fg)", fontSize: 9, fontFamily: "monospace" }} width={52} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="revenue" name="Revenue" fill="rgba(255,255,255,0.15)" radius={[0, 4, 4, 0]} />
-              <Bar dataKey="paid" name="Paid" fill="rgba(52,211,153,0.4)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="revenue" name="Revenue" fill="var(--fg)" fillOpacity={0.12} radius={[0, 4, 4, 0]} />
+              <Bar dataKey="paid" name="Paid" fill="#10b981" fillOpacity={0.4} radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -192,12 +194,12 @@ export default function Analytics() {
         <ChartCard title="Season Comparison" loading={loading}>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={(data?.seasonStats || []).map(s => ({ name: s.name.split(" ").slice(0,2).join(" "), revenue: s.revenue, paid: s.paid }))} margin={{ left: -10, right: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 8, fontFamily: "monospace" }} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9, fontFamily: "monospace" }} tickFormatter={fmtShort} width={42} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="name" tick={{ fill: "var(--fg-muted)", fontSize: 8, fontFamily: "monospace" }} />
+              <YAxis tick={{ fill: "var(--fg-muted)", fontSize: 9, fontFamily: "monospace" }} tickFormatter={fmtShort} width={42} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="revenue" name="Revenue" fill="rgba(255,255,255,0.15)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="paid" name="Paid" fill="rgba(52,211,153,0.4)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="revenue" name="Revenue" fill="var(--fg)" fillOpacity={0.12} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="paid" name="Paid" fill="#10b981" fillOpacity={0.4} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>

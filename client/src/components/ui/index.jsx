@@ -51,7 +51,6 @@ export function Select({ className = "", error, children, value, onChange, ...pr
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const containerRef = useRef(null);
-  const searchInputRef = useRef(null);
 
   // Extract options from children natively
   const options = React.Children.toArray(children).map(child => {
@@ -70,17 +69,68 @@ export function Select({ className = "", error, children, value, onChange, ...pr
     }
   }, [isOpen]);
 
-  // Focus search input when dropdown opens
+  // Reset search after 1.5s of inactivity
   useEffect(() => {
-    if (isOpen) {
-      const timer = setTimeout(() => {
-        if (searchInputRef.current) {
-          searchInputRef.current.focus();
-        }
-      }, 50);
-      return () => clearTimeout(timer);
+    if (!searchTerm) return;
+    const timer = setTimeout(() => {
+      setSearchTerm("");
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const handleSelect = (val) => {
+    if (onChange) {
+      onChange({ target: { value: val } });
     }
-  }, [isOpen]);
+    setIsOpen(false);
+  };
+
+  // Capture keystrokes globally while open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      // Ignore modifier keys
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if (e.key === "Escape") {
+        setIsOpen(false);
+        return;
+      }
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const filtered = options.filter(opt =>
+          String(opt.label).toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        if (filtered.length > 0) {
+          handleSelect(filtered[0].value);
+        }
+        return;
+      }
+
+      if (e.key === "Backspace") {
+        e.preventDefault();
+        setSearchTerm(prev => prev.slice(0, -1));
+        return;
+      }
+
+      if (e.key === " " && searchTerm.length > 0) {
+        e.preventDefault();
+        setSearchTerm(prev => prev + " ");
+        return;
+      }
+
+      // Single printable character
+      if (e.key.length === 1 && /[a-zA-Z0-9\s-_.,/]/i.test(e.key)) {
+        e.preventDefault();
+        setSearchTerm(prev => prev + e.key);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, searchTerm, options]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -91,13 +141,6 @@ export function Select({ className = "", error, children, value, onChange, ...pr
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleSelect = (val) => {
-    if (onChange) {
-      onChange({ target: { value: val } });
-    }
-    setIsOpen(false);
-  };
 
   const filteredOptions = options.filter(opt =>
     String(opt.label).toLowerCase().includes(searchTerm.toLowerCase())
@@ -124,17 +167,16 @@ export function Select({ className = "", error, children, value, onChange, ...pr
             transition={{ duration: 0.15 }}
             className="absolute z-50 w-full mt-2 bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-2xl overflow-hidden"
           >
-            {options.length > 5 && (
-              <div className="p-2 border-b border-[var(--border)] bg-[var(--fg)]/[0.01]">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg)] text-[var(--fg)] placeholder-[var(--fg)]/30 text-xs font-mono focus:outline-none focus:border-[var(--fg)]/20 focus:bg-[var(--fg)]/[0.02] transition-all"
-                  onClick={(e) => e.stopPropagation()} // Prevent close on search click
-                />
+            {searchTerm && (
+              <div className="px-4 py-2 border-b border-[var(--border)] bg-[var(--fg)]/[0.02] text-[10px] font-mono text-[var(--fg-muted)] uppercase tracking-widest flex items-center justify-between">
+                <span>Searching: "{searchTerm}"</span>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setSearchTerm(""); }}
+                  className="text-red-400 hover:text-red-300 transition-colors"
+                >
+                  Clear
+                </button>
               </div>
             )}
             <div className="max-h-60 overflow-y-auto overscroll-contain flex flex-col py-2 no-scrollbar">
