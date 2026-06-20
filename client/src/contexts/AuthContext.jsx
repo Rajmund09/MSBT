@@ -21,6 +21,7 @@ export function AuthProvider({ children }) {
     if (cached) setUser(cached);
 
     // Then verify with server
+    const isRemembered = !!localStorage.getItem("msbt_auth_token");
     api.getMe()
       .then(data => {
         const u = {
@@ -33,11 +34,17 @@ export function AuthProvider({ children }) {
           profile_photo: data.profile_photo,
         };
         setUser(u);
-        setStoredUser(u, !!localStorage.getItem("msbt_auth_token"));
+        setStoredUser(u, isRemembered);
       })
-      .catch(() => {
-        clearSession();
-        setUser(null);
+      .catch((err) => {
+        // Only clear session on true auth failures (401/403)
+        // Keep session alive on server errors (500) to avoid forced re-login
+        if (err.status === 401 || err.status === 403) {
+          clearSession();
+          setUser(null);
+        } else {
+          if (!cached) setUser(null);
+        }
       })
       .finally(() => setLoading(false));
   }, []);
