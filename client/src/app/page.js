@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -11,6 +11,60 @@ import {
 import { api } from "@/utils/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton, Select } from "@/components/ui/index";
+
+// ── Text Scramble / Decryption Effect ────────────────────────────────────────
+const CHARS = "0123456789₹,.kLCr";
+
+function useScramble(value, isScrambling) {
+  const [display, setDisplay] = useState(String(value));
+  const frameRef = useRef(null);
+  const iterRef = useRef(0);
+
+  useEffect(() => {
+    const target = String(value);
+    if (!isScrambling) {
+      setDisplay(target);
+      return;
+    }
+    iterRef.current = 0;
+    const totalFrames = 18;
+
+    const tick = () => {
+      iterRef.current += 1;
+      const progress = iterRef.current / totalFrames;
+      const revealUpTo = Math.floor(progress * target.length);
+
+      const scrambled = target
+        .split("")
+        .map((ch, i) => {
+          if (i < revealUpTo) return ch;
+          // Keep spaces, ₹ and punctuation readable while scrambling digits
+          if (ch === " " || ch === "₹") return ch;
+          return CHARS[Math.floor(Math.random() * CHARS.length)];
+        })
+        .join("");
+
+      setDisplay(scrambled);
+
+      if (iterRef.current < totalFrames) {
+        frameRef.current = setTimeout(tick, 35);
+      } else {
+        setDisplay(target);
+      }
+    };
+
+    clearTimeout(frameRef.current);
+    tick();
+    return () => clearTimeout(frameRef.current);
+  }, [value, isScrambling]);
+
+  return display;
+}
+
+function ScrambleText({ value, scrambling, className }) {
+  const display = useScramble(value, scrambling);
+  return <span className={className}>{display}</span>;
+}
 
 const fmt = (n) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 const fmtShort = (n) => {
@@ -24,7 +78,7 @@ const fmtShort = (n) => {
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-function MetricCard({ title, value, sub, icon, highlight, delay = 0 }) {
+function MetricCard({ title, value, sub, icon, highlight, delay = 0, scrambling }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
@@ -43,7 +97,11 @@ function MetricCard({ title, value, sub, icon, highlight, delay = 0 }) {
         <div className="opacity-30 hidden sm:block">{icon}</div>
       </div>
       <div>
-        <div className="font-mono font-medium text-3xl sm:text-4xl md:text-5xl tracking-tighter">{fmtShort(value)}</div>
+        <ScrambleText
+          value={fmtShort(value)}
+          scrambling={scrambling}
+          className="font-mono font-medium text-3xl sm:text-4xl md:text-5xl tracking-tighter"
+        />
         {sub && <div className="font-mono text-xs text-[var(--fg-muted)] mt-1">{sub}</div>}
       </div>
       <motion.div
@@ -117,6 +175,7 @@ export default function Dashboard() {
   const [time, setTime] = useState(new Date());
   const [seasons, setSeasons] = useState([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState("");
+  const [scrambling, setScrambling] = useState(false);
 
   const getGreeting = () => {
     const hour = time.getHours();
@@ -133,10 +192,16 @@ export default function Dashboard() {
 
   useEffect(() => {
     setLoading(true);
+    setScrambling(true);
     const params = selectedSeasonId ? { seasonId: selectedSeasonId } : {};
     api.getDashboard(params)
-      .then(d => { setData(d); setLoading(false); })
-      .catch(err => { setError(err.message); setLoading(false); });
+      .then(d => {
+        setData(d);
+        setLoading(false);
+        // Keep scrambling active for the animation duration after data arrives
+        setTimeout(() => setScrambling(false), 700);
+      })
+      .catch(err => { setError(err.message); setLoading(false); setScrambling(false); });
   }, [selectedSeasonId]);
 
   if (loading && !data) {
@@ -228,9 +293,9 @@ export default function Dashboard() {
 
       {/* Main Metrics */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <MetricCard title="Total Revenue" value={metrics.totalRevenue} icon={<ArrowUpRight />} delay={0} />
-        <MetricCard title="Collected" value={metrics.totalCollections} icon={<Activity />} delay={0.1} />
-        <MetricCard title="Outstanding" value={metrics.outstandingBalance} icon={<ArrowDownRight />} delay={0.2} highlight />
+        <MetricCard title="Total Revenue" value={metrics.totalRevenue} icon={<ArrowUpRight />} delay={0} scrambling={scrambling} />
+        <MetricCard title="Collected" value={metrics.totalCollections} icon={<Activity />} delay={0.1} scrambling={scrambling} />
+        <MetricCard title="Outstanding" value={metrics.outstandingBalance} icon={<ArrowDownRight />} delay={0.2} highlight scrambling={scrambling} />
       </section>
 
       {/* Quick stats */}
@@ -238,8 +303,8 @@ export default function Dashboard() {
         {[
           { label: "Today Revenue", value: fmtShort(today.revenue), icon: <TrendingUp size={14} /> },
           { label: "Today Collected", value: fmtShort(today.collections), icon: <Zap size={14} /> },
-          { label: "Customers", value: metrics.customersCount, icon: <Users size={14} /> },
-          { label: "Total Entries", value: metrics.entriesCount, icon: <FileText size={14} /> },
+          { label: "Customers", value: String(metrics.customersCount), icon: <Users size={14} /> },
+          { label: "Total Entries", value: String(metrics.entriesCount), icon: <FileText size={14} /> },
         ].map((s, i) => (
           <motion.div
             key={s.label}
@@ -252,7 +317,11 @@ export default function Dashboard() {
               {s.icon}
               <span className="font-mono text-[8px] sm:text-[10px] uppercase tracking-widest leading-tight">{s.label}</span>
             </div>
-            <span className="font-mono font-medium text-xl sm:text-2xl tracking-tighter">{s.value}</span>
+            <ScrambleText
+              value={s.value}
+              scrambling={scrambling}
+              className="font-mono font-medium text-xl sm:text-2xl tracking-tighter"
+            />
           </motion.div>
         ))}
       </section>
