@@ -159,14 +159,12 @@ const DesktopNav = () => {
                 const isActive = pathname === link.href;
                 const linkContent = (
                   <motion.div initial="initial" whileHover={hasHover ? "hover" : undefined}>
-                    <Link
-                      href={link.href}
-                      onClick={(e) => {
-                        e.preventDefault();
+                    <button
+                      onClick={() => {
                         setIsHovered(false);
                         router.push(link.href);
                       }}
-                      className="relative px-2.5 py-2 lg:px-5 lg:py-2.5 rounded-full transition-colors flex items-center justify-center group"
+                      className="relative px-2.5 py-2 lg:px-5 lg:py-2.5 rounded-full transition-colors flex items-center justify-center group w-full"
                     >
                       <div
                         className={`relative z-10 font-sans font-medium text-[11px] lg:text-[14px] tracking-normal transition-colors flex overflow-hidden ${
@@ -221,7 +219,7 @@ const DesktopNav = () => {
                           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                         />
                       )}
-                    </Link>
+                    </button>
                   </motion.div>
                 );
 
@@ -392,22 +390,22 @@ const MobileNav = () => {
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3, delay: 0.1 + i * 0.04, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.3, delay: 0.1 + idx * 0.04, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      <Link
-                        href={link.href}
-                        onClick={(e) => {
-                          e.preventDefault();
+                      <button
+                        onClick={() => {
                           setIsOpen(false);
                           router.push(link.href);
                         }}
-                        className={`flex items-center justify-between group py-3 px-4 rounded-2xl transition-all ${isActive ? 'bg-white/10' : 'active:bg-white/5'}`}
+                        className={`flex items-center justify-between group py-3 px-4 rounded-2xl transition-all w-full ${isActive ? 'bg-white/10' : 'active:bg-white/5'}`}
                       >
                          <span className={`font-mono text-sm uppercase tracking-widest transition-colors ${isActive ? 'text-white font-semibold' : 'text-white/50'}`}>
-                          {link.name}
-                        </span>
-                        {isActive && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-                      </Link>
+                           {link.name}
+                         </span>
+                         <span className={`text-xs opacity-50 font-mono tracking-widest ${isActive ? 'text-white' : 'text-white/30'}`}>
+                           0{idx + 1}
+                         </span>
+                      </button>
                     </motion.div>
                   );
                 })}

@@ -21,7 +21,7 @@ function AppShell({ children }) {
   const { enableCustomCursor, isTouch } = useInteraction();
   const pathname = usePathname();
   const router = useRouter();
-  const [appLoaded, setAppLoaded] = useState(true); // Bypass long cinematic loader entirely based on user request
+  const [appLoaded, setAppLoaded] = useState(false); // Play cinematic loader on initial load/reload
   const isLoginPage = pathname === "/login";
 
   // Redirect unauthenticated users to login
@@ -41,12 +41,14 @@ function AppShell({ children }) {
   useEffect(() => {
     const setFavicon = (url) => {
       const links = document.querySelectorAll("link[rel~='icon']");
-      links.forEach(link => link.remove());
-      
-      const newLink = document.createElement('link');
-      newLink.rel = 'icon';
-      newLink.href = url;
-      document.head.appendChild(newLink);
+      if (links.length > 0) {
+        links.forEach(link => { link.href = url; });
+      } else {
+        const newLink = document.createElement('link');
+        newLink.rel = 'icon';
+        newLink.href = url;
+        document.head.appendChild(newLink);
+      }
     };
 
     if (user?.profile_photo) {
