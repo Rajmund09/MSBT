@@ -10,8 +10,6 @@ export default function TransitionProvider({ children }) {
   return (
     <AnimatePresence mode="popLayout">
       <motion.div key={pathname} className="w-full">
-        {/* The exit animation logic is driven entirely by the PixelTransition component overlaying the screen. */}
-        <PixelTransition />
         {children}
       </motion.div>
     </AnimatePresence>
