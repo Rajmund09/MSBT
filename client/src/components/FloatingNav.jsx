@@ -161,7 +161,11 @@ const DesktopNav = () => {
                   <motion.div initial="initial" whileHover={hasHover ? "hover" : undefined}>
                     <Link
                       href={link.href}
-                      onClick={() => setIsHovered(false)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsHovered(false);
+                        router.push(link.href);
+                      }}
                       className="relative px-2.5 py-2 lg:px-5 lg:py-2.5 rounded-full transition-colors flex items-center justify-center group"
                     >
                       <div
@@ -392,7 +396,11 @@ const MobileNav = () => {
                     >
                       <Link
                         href={link.href}
-                        onClick={() => setIsOpen(false)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsOpen(false);
+                          router.push(link.href);
+                        }}
                         className={`flex items-center justify-between group py-3 px-4 rounded-2xl transition-all ${isActive ? 'bg-white/10' : 'active:bg-white/5'}`}
                       >
                          <span className={`font-mono text-sm uppercase tracking-widest transition-colors ${isActive ? 'text-white font-semibold' : 'text-white/50'}`}>
