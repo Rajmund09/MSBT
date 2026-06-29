@@ -21,8 +21,7 @@ function AppShell({ children }) {
   const { enableCustomCursor, isTouch } = useInteraction();
   const pathname = usePathname();
   const router = useRouter();
-  const [appLoaded, setAppLoaded] = useState(false);
-
+  const [appLoaded, setAppLoaded] = useState(true); // Bypass long cinematic loader entirely based on user request
   const isLoginPage = pathname === "/login";
 
   // Redirect unauthenticated users to login
