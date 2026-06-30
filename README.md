@@ -129,6 +129,7 @@ The customer phone number is optional (`phone` value defaults to an empty string
 - **📌 Standing Entry Modals:** Modified "Add Entry" modals to remain open for rapid, repetitive entries. Submitting a new record updates the data grid in the background and clears only `quantity` and `description` fields, while preserving chosen metadata (customer, season, rate, and entry date) until dismissed.
 - **🔐 Auth Session Persistence Fix:** Fixed a critical bug where any server-side error (HTTP 500) would silently call `clearSession()` and wipe the user's "Keep Me Signed In" token from `localStorage`. The fix now discriminates between genuine auth failures (`401`/`403`) which correctly force re-login, and transient server errors (`500`, network failures) which preserve the session and cached user state.
 - **🎞️ Dashboard Number Scramble Animation:** Added a text-decryption/scramble effect on all seven metric numbers (Total Revenue, Collected, Outstanding, Today Revenue, Today Collected, Customers, Total Entries). The animation fires exclusively on the number content — not the card, border, label, or icon — whenever the season filter changes, providing clear visual feedback that data is refreshing.
+- **🖼️ Dynamic User Favicon:** The application now dynamically overrides the default Next.js tab icon with the authenticated user's profile photo. The system aggressively clears default icon links before injecting the dynamic user icon, providing a highly personalized workspace feel.
 
 ---
 
