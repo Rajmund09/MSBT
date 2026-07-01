@@ -38,6 +38,25 @@ function AppShell({ children }) {
     ? { lerp: 1, smoothTouch: false }
     : { lerp: 0.08, duration: 1.5, smoothTouch: false };
 
+  // Update favicon dynamically based on user profile photo
+  useEffect(() => {
+    const setFavicon = (url) => {
+      const links = document.querySelectorAll("link[rel~='icon']");
+      links.forEach(link => link.remove());
+      
+      const newLink = document.createElement('link');
+      newLink.rel = 'icon';
+      newLink.href = url;
+      document.head.appendChild(newLink);
+    };
+
+    if (user?.profile_photo) {
+      setFavicon(user.profile_photo);
+    } else {
+      setFavicon('/favicon.ico');
+    }
+  }, [user]);
+
   // On login page — render children directly (no nav/loader)
   if (isLoginPage) {
     return <>{children}</>;
