@@ -78,7 +78,7 @@ const fmtShort = (n) => {
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-function MetricCard({ title, value, sub, icon, highlight, delay = 0, scrambling }) {
+function MetricCard({ title, value, sub, icon, highlight, delay = 0, scrambling, loading }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
@@ -98,7 +98,7 @@ function MetricCard({ title, value, sub, icon, highlight, delay = 0, scrambling 
       </div>
       <div>
         <ScrambleText
-          value={fmtShort(value)}
+          value={loading ? "..." : fmtShort(value)}
           scrambling={scrambling}
           className="font-mono font-medium text-3xl sm:text-4xl md:text-5xl tracking-tighter"
         />
@@ -192,17 +192,16 @@ export default function Dashboard() {
 
   useEffect(() => {
     setLoading(true);
-    setScrambling(true);
-    setData(null);
     const params = selectedSeasonId ? { seasonId: selectedSeasonId } : {};
     api.getDashboard(params)
       .then(d => {
         setData(d);
         setLoading(false);
+        setScrambling(true);
         // Keep scrambling active for the animation duration after data arrives
         setTimeout(() => setScrambling(false), 700);
       })
-      .catch(err => { setError(err.message); setLoading(false); setScrambling(false); });
+      .catch(err => { setError(err.message); setLoading(false); });
   }, [selectedSeasonId]);
 
   if (loading && !data) {
@@ -264,7 +263,7 @@ export default function Dashboard() {
             </div>
           </div>
           <p className="font-mono text-sm text-[var(--fg-muted)] max-w-xl">
-            You have <span className="text-[var(--fg)]">{metrics.customersCount} active customers</span> and <span className="text-[var(--fg)]">{metrics.entriesCount} entries logged</span>.
+            You have <span className="text-[var(--fg)]">{loading ? "..." : metrics.customersCount} active customers</span> and <span className="text-[var(--fg)]">{loading ? "..." : metrics.entriesCount} entries logged</span>.
           </p>
         </motion.div>
 
@@ -294,9 +293,9 @@ export default function Dashboard() {
 
       {/* Main Metrics */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <MetricCard title="Total Revenue" value={metrics.totalRevenue} icon={<ArrowUpRight />} delay={0} scrambling={scrambling} />
-        <MetricCard title="Collected" value={metrics.totalCollections} icon={<Activity />} delay={0.1} scrambling={scrambling} />
-        <MetricCard title="Outstanding" value={metrics.outstandingBalance} icon={<ArrowDownRight />} delay={0.2} highlight scrambling={scrambling} />
+        <MetricCard title="Total Revenue" value={metrics.totalRevenue} icon={<ArrowUpRight />} delay={0} scrambling={scrambling} loading={loading} />
+        <MetricCard title="Collected" value={metrics.totalCollections} icon={<Activity />} delay={0.1} scrambling={scrambling} loading={loading} />
+        <MetricCard title="Outstanding" value={metrics.outstandingBalance} icon={<ArrowDownRight />} delay={0.2} highlight scrambling={scrambling} loading={loading} />
       </section>
 
       {/* Quick stats */}
@@ -319,7 +318,7 @@ export default function Dashboard() {
               <span className="font-mono text-[8px] sm:text-[10px] uppercase tracking-widest leading-tight">{s.label}</span>
             </div>
             <ScrambleText
-              value={s.value}
+              value={loading ? "..." : s.value}
               scrambling={scrambling}
               className="font-mono font-medium text-xl sm:text-2xl tracking-tighter"
             />
@@ -408,7 +407,7 @@ export default function Dashboard() {
                       <div className="font-mono text-[10px] text-[var(--fg-muted)] mt-1">{c.village}</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-mono font-medium text-sm text-red-500">{fmt(c.outstanding)}</div>
+                      <div className="font-mono font-medium text-sm text-red-500">{loading ? "..." : fmt(c.outstanding)}</div>
                       <div className="font-mono text-[10px] text-[var(--fg-muted)] mt-1">Due</div>
                     </div>
                   </motion.div>
