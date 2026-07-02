@@ -15,14 +15,14 @@ import { Skeleton, Select } from "@/components/ui/index";
 // ── Text Scramble / Decryption Effect ────────────────────────────────────────
 const CHARS = "0123456789₹,.kLCr";
 
-function useScramble(value, isScrambling) {
+function useScramble(value, isScrambling, isLoading = false) {
   const [display, setDisplay] = useState(String(value));
   const frameRef = useRef(null);
   const iterRef = useRef(0);
 
   useEffect(() => {
     const target = String(value);
-    if (!isScrambling) {
+    if (!isScrambling && !isLoading) {
       setDisplay(target);
       return;
     }
@@ -31,7 +31,7 @@ function useScramble(value, isScrambling) {
 
     const tick = () => {
       iterRef.current += 1;
-      const progress = iterRef.current / totalFrames;
+      const progress = isLoading ? 0 : iterRef.current / totalFrames;
       const revealUpTo = Math.floor(progress * target.length);
 
       const scrambled = target
@@ -46,7 +46,7 @@ function useScramble(value, isScrambling) {
 
       setDisplay(scrambled);
 
-      if (iterRef.current < totalFrames) {
+      if (isLoading || iterRef.current < totalFrames) {
         frameRef.current = setTimeout(tick, 35);
       } else {
         setDisplay(target);
@@ -56,13 +56,13 @@ function useScramble(value, isScrambling) {
     clearTimeout(frameRef.current);
     tick();
     return () => clearTimeout(frameRef.current);
-  }, [value, isScrambling]);
+  }, [value, isScrambling, isLoading]);
 
   return display;
 }
 
-function ScrambleText({ value, scrambling, className }) {
-  const display = useScramble(value, scrambling);
+function ScrambleText({ value, scrambling, loading, className }) {
+  const display = useScramble(value, scrambling, loading);
   return <span className={className}>{display}</span>;
 }
 
@@ -98,8 +98,9 @@ function MetricCard({ title, value, sub, icon, highlight, delay = 0, scrambling,
       </div>
       <div>
         <ScrambleText
-          value={loading ? "..." : fmtShort(value)}
+          value={fmtShort(value)}
           scrambling={scrambling}
+          loading={loading}
           className="font-mono font-medium text-3xl sm:text-4xl md:text-5xl tracking-tighter"
         />
         {sub && <div className="font-mono text-xs text-[var(--fg-muted)] mt-1">{sub}</div>}
@@ -263,7 +264,11 @@ export default function Dashboard() {
             </div>
           </div>
           <p className="font-mono text-sm text-[var(--fg-muted)] max-w-xl">
-            You have <span className="text-[var(--fg)]">{loading ? "..." : metrics.customersCount} active customers</span> and <span className="text-[var(--fg)]">{loading ? "..." : metrics.entriesCount} entries logged</span>.
+            You have <span className="text-[var(--fg)]">
+              {loading ? <ScrambleText value={metrics.customersCount} loading={true} /> : metrics.customersCount}
+            </span> active customers and <span className="text-[var(--fg)]">
+              {loading ? <ScrambleText value={metrics.entriesCount} loading={true} /> : metrics.entriesCount}
+            </span> entries logged.
           </p>
         </motion.div>
 
@@ -318,8 +323,9 @@ export default function Dashboard() {
               <span className="font-mono text-[8px] sm:text-[10px] uppercase tracking-widest leading-tight">{s.label}</span>
             </div>
             <ScrambleText
-              value={loading ? "..." : s.value}
+              value={s.value}
               scrambling={scrambling}
+              loading={loading}
               className="font-mono font-medium text-xl sm:text-2xl tracking-tighter"
             />
           </motion.div>
@@ -407,7 +413,13 @@ export default function Dashboard() {
                       <div className="font-mono text-[10px] text-[var(--fg-muted)] mt-1">{c.village}</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-mono font-medium text-sm text-red-500">{loading ? "..." : fmt(c.outstanding)}</div>
+                      <div className="font-mono font-medium text-sm text-red-500">
+                        {loading ? (
+                          <ScrambleText value={fmt(c.outstanding)} loading={true} />
+                        ) : (
+                          fmt(c.outstanding)
+                        )}
+                      </div>
                       <div className="font-mono text-[10px] text-[var(--fg-muted)] mt-1">Due</div>
                     </div>
                   </motion.div>
