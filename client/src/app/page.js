@@ -193,6 +193,7 @@ export default function Dashboard() {
   useEffect(() => {
     setLoading(true);
     setScrambling(true);
+    setData(null);
     const params = selectedSeasonId ? { seasonId: selectedSeasonId } : {};
     api.getDashboard(params)
       .then(d => {
