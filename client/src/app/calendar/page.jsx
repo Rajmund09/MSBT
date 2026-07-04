@@ -681,7 +681,7 @@ function DayTimeline({ events, onToggleTask, onEditTask, onDeleteTask }) {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0 }}
-        className="flex flex-col items-center justify-center py-20 text-center gap-4 rounded-3xl border border-dashed border-[var(--border)] bg-[var(--fg)]/[0.01]"
+        className="flex flex-col items-center justify-center py-20 text-center gap-4 rounded-3xl border border-dashed border-[var(--fg)]/15 shadow-[0_8px_30px_rgb(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.9)] bg-[var(--nav-bg)] backdrop-blur-md"
       >
         <CalendarDays size={40} className="text-[var(--fg-muted)] opacity-30 animate-pulse" />
         <h3 className="font-display text-lg text-[var(--fg)] opacity-70">Clear Schedule</h3>
