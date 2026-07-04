@@ -374,7 +374,7 @@ function EntryRow({ entry, onDelete, index, checkPerm }) {
     <motion.div
       variants={rowVariants}
       layout
-      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 rounded-2xl bg-[var(--fg)]/[0.025] border border-[var(--border)] hover:bg-[var(--fg)]/[0.05] transition-all"
+      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 rounded-2xl bg-[var(--nav-bg)] backdrop-blur-md border border-[var(--fg)]/15 shadow-[0_8px_30px_rgb(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.9)] hover:bg-[var(--bg)] transition-all"
     >
       <div className="flex items-center gap-4 min-w-0">
         <span className="font-mono text-xs text-[var(--fg-muted)] w-6 shrink-0">{String(index + 1).padStart(2, "0")}</span>
