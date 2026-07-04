@@ -43,7 +43,7 @@ function ChartCard({ title, children, loading }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="p-6 rounded-3xl bg-[var(--fg)]/[0.025] border border-[var(--border)] flex flex-col gap-5"
+      className="p-6 rounded-3xl bg-[var(--nav-bg)] backdrop-blur-md border border-[var(--fg)]/15 shadow-[0_8px_30px_rgb(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.9)] flex flex-col gap-5"
     >
       <h3 className="font-mono text-[11px] uppercase tracking-widest text-[var(--fg-muted)]">{title}</h3>
       {loading ? <Skeleton className="h-60" /> : children}
