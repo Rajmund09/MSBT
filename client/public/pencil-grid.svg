@@ -1,0 +1,9 @@
+<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+  <g fill="none">
+    <path d="M 0 19 Q 5 18 10 19 T 20 19" stroke="rgba(22,22,20,0.05)" stroke-width="0.7" />
+    <path d="M 0 19 Q 7 20 15 19 T 20 19" stroke="rgba(22,22,20,0.03)" stroke-width="0.4" />
+    
+    <path d="M 19 0 Q 18 5 19 10 T 19 20" stroke="rgba(22,22,20,0.05)" stroke-width="0.7" />
+    <path d="M 19 0 Q 20 7 19 15 T 19 20" stroke="rgba(22,22,20,0.03)" stroke-width="0.4" />
+  </g>
+</svg>
