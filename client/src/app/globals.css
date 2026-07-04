@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #ffffff; /* Pure White */
+  --bg: #f6f5f0; /* Warm Alabaster Linen Off-White */
   --fg: #161614; /* Deep Soft Charcoal */
   --fg-muted: rgba(22, 22, 20, 0.45);
   --border: rgba(22, 22, 20, 0.08);
