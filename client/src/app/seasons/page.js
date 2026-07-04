@@ -76,7 +76,7 @@ function SeasonCard({ season, onStatusChange, index }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       layout
-      className="group relative flex flex-col gap-5 p-6 rounded-2xl bg-[var(--fg)]/[0.025] border border-[var(--border)] hover:bg-[var(--fg)]/[0.05] transition-all overflow-hidden"
+      className="group relative flex flex-col gap-5 p-6 rounded-2xl bg-[var(--nav-bg)] backdrop-blur-md border border-[var(--fg)]/15 shadow-[0_8px_30px_rgb(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.9)] hover:bg-[var(--bg)] transition-all overflow-hidden"
     >
       {/* Status Badge */}
       <div className="flex items-center justify-between">
