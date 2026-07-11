@@ -11,6 +11,7 @@ import { InteractionProvider, useInteraction } from "@/contexts/InteractionConte
 import Loader from "./Loader";
 import FloatingNav from "./FloatingNav";
 import TopLogo from "./TopLogo";
+import PixelTransition from "./PixelTransition";
 
 import AccountDropdown from "./AccountDropdown";
 import dynamic from "next/dynamic";
@@ -102,6 +103,7 @@ function AppShell({ children }) {
                 paddingBottom: 'calc(clamp(5.5rem, 10vw, 8rem) + env(safe-area-inset-bottom, 0px))',
               }}
             >
+              <PixelTransition />
               {children}
             </motion.div>
           </AnimatePresence>
