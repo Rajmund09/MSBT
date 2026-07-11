@@ -390,7 +390,7 @@ const MobileNav = () => {
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3, delay: 0.1 + idx * 0.04, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.3, delay: 0.1 + i * 0.04, ease: [0.22, 1, 0.36, 1] }}
                     >
                       <button
                         onClick={() => {
@@ -403,7 +403,7 @@ const MobileNav = () => {
                            {link.name}
                          </span>
                          <span className={`text-xs opacity-50 font-mono tracking-widest ${isActive ? 'text-white' : 'text-white/30'}`}>
-                           0{idx + 1}
+                           0{i + 1}
                          </span>
                       </button>
                     </motion.div>
