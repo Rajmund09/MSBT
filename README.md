@@ -132,6 +132,7 @@ The customer phone number is optional (`phone` value defaults to an empty string
 - **🖼️ Dynamic User Favicon:** The application now dynamically overrides the default Next.js tab icon with the authenticated user's profile photo. The system aggressively clears default icon links before injecting the dynamic user icon, providing a highly personalized workspace feel.
 - **⚡ Loader & Transition Optimization:** Bypassed the heavy 4-5 second cinematic 3D MSBT loader and disabled the 1-second pixelated wipe transition on page changes. This drastically improves perceived performance and provides an instantaneous, snappy feel on every short interaction and route navigation.
 - **🖱️ Immediate Navigation Response:** Fixed a "double-click" requirement on the Floating Navigation bar. By intercepting the click events and enforcing an immediate `router.push()` alongside the menu-close animation, route changes are no longer swallowed or aborted by Framer Motion's `AnimatePresence` unmounting cycle.
+- **Bug Fix & Restoration (July 11, 2026):** Restored the `PixelTransition` canvas wipe animation on route changes that was inadvertently omitted from the layout provider, and fixed a critical runtime crash (`idx is not defined`) occurring during menu navigation in the `FloatingNav` component. The pixel transition duration was also slightly increased to 1200ms for a smoother effect.
 
 ---
 
